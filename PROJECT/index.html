@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PreScreen AI — Advanced Autonomous Pre-Screening System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Load fontawesome for high quality UI icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="logo-container">
+      <div class="logo-icon">P</div>
+      <div class="logo-text">PreScreen AI</div>
+    </div>
+    <div class="nav-controls">
+      <button id="nav-btn-candidate" class="mode-switch-btn active">
+        <i class="fa-solid fa-user-tie"></i> Candidate Portal
+      </button>
+      <button id="nav-btn-recruiter" class="mode-switch-btn">
+        <i class="fa-solid fa-chart-line"></i> Recruiter Dashboard
+      </button>
+      <button id="nav-btn-settings" class="api-settings-trigger" title="AI Settings">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- ========================================== -->
+    <!--          CANDIDATE PORTAL SECTION          -->
+    <!-- ========================================== -->
+    <section id="candidate-portal" class="view-section active">
+      
+      <!-- STEP 1: Upload Resume & Details -->
+      <div id="step-upload" class="welcome-grid">
+        <div class="welcome-info">
+          <div class="feature-tag-list">
+            <span class="feature-tag"><i class="fa-solid fa-brain"></i> AI Autonomous Interviewer</span>
+            <span class="feature-tag"><i class="fa-solid fa-microphone"></i> Voice Enabled</span>
+            <span class="feature-tag"><i class="fa-solid fa-shield-halved"></i> Secure Storage</span>
+          </div>
+          <h1>Welcome to your AI Pre-Screening</h1>
+          <p>
+            You are about to undergo a pre-screening interview managed by our AI agent. 
+            Upload your resume, select your targeted role, and state your name to begin a personalized, 
+            interactive voice session.
+          </p>
+          <div class="custom-alert">
+            <div class="custom-alert-icon"><i class="fa-solid fa-video"></i></div>
+            <div>
+              <strong>Recording Disclosure:</strong> Your session, including video and audio, will be recorded for recruiter evaluation. Please ensure camera and microphone permissions are enabled when prompted.
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;"><i class="fa-solid fa-id-card"></i> Candidate Details</h2>
+          
+          <div class="form-group">
+            <label class="form-label" for="candidate-name">Full Name</label>
+            <input type="text" id="candidate-name" class="form-input" placeholder="e.g. Jane Doe" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="candidate-email">Email Address</label>
+            <input type="email" id="candidate-email" class="form-input" placeholder="e.g. jane.doe@example.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="target-role">Target Position</label>
+            <select id="target-role" class="form-select">
+              <option value="Software Engineer">Software Engineer</option>
+              <option value="UX Designer">UX Designer</option>
+              <option value="Product Manager">Product Manager</option>
+              <option value="Data Analyst">Data Analyst</option>
+            </select>
+          </div>
+
+          <label class="form-label">Upload Resume (PDF, DOCX, or Text)</label>
+          <div id="resume-drop-zone" class="upload-area">
+            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div class="upload-text">Drag & drop your resume file here</div>
+            <div class="upload-subtext">or click to browse from files</div>
+            <input type="file" id="resume-file-input" class="file-input-hidden" accept=".pdf,.docx,.txt,.doc">
+          </div>
+
+          <!-- Uploaded Pill -->
+          <div id="uploaded-file-container" class="uploaded-file-pill">
+            <div class="file-info">
+              <i class="fa-solid fa-file-pdf file-pill-icon"></i>
+              <div>
+                <div id="uploaded-file-name" class="file-name">resume.pdf</div>
+                <div id="uploaded-file-size" class="file-size">145 KB</div>
+              </div>
+            </div>
+            <button id="btn-remove-file" class="remove-file-btn" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <button id="btn-start-screening" class="btn-primary" style="width: 100%;" disabled>
+            <i class="fa-solid fa-circle-play"></i> Start Interview Session
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Processing / Analyzing -->
+      <div id="step-processing" class="view-section">
+        <div class="glass-card processing-card">
+          <div class="pulse-scanner">
+            <i class="fa-solid fa-fingerprint"></i>
+          </div>
+          <h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Analyzing Your Resume</h2>
+          <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+            Our AI engine is scanning your credentials and compiling standard custom questions tailored for your background.
+          </p>
+          <div id="processing-progress-bar" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-bottom: 1.5rem;">
+            <div id="processing-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-indigo), var(--accent-cyan)); transition: width 0.3s ease;"></div>
+          </div>
+          <div id="processing-logs-box" class="processing-logs">
+            <div class="log-entry">Initializing connection...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Interview Room -->
+      <div id="step-interview" class="view-section">
+        <div class="interview-layout">
+          
+          <!-- Avatar Panel (Left) -->
+          <div class="glass-card avatar-panel">
+            <div class="avatar-container">
+              <div class="avatar-glow-ring"></div>
+              <div class="avatar-svg-wrapper">
+                <!-- SVG Animated Avatar -->
+                <svg id="avatar-svg" viewBox="0 0 200 200" width="100%" height="100%">
+                  <defs>
+                    <radialGradient id="face-gradient" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#1e1e38" />
+                      <stop offset="100%" stop-color="#0e0e1a" />
+                    </radialGradient>
+                    <linearGradient id="cyber-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#6366f1" />
+                      <stop offset="100%" stop-color="#06b6d4" />
+                    </linearGradient>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+                  <!-- Background Circle -->
+                  <circle cx="100" cy="100" r="85" fill="url(#face-gradient)" stroke="#1a1c35" stroke-width="2" />
+                  
+                  <!-- Face Ring Structure -->
+                  <circle cx="100" cy="100" r="75" fill="none" stroke="url(#cyber-gradient)" stroke-width="1.5" stroke-dasharray="10 5 20 5" opacity="0.4" />
+                  
+                  <!-- Left Eye -->
+                  <g id="avatar-eye-left" class="avatar-eye">
+                    <ellipse cx="75" cy="90" rx="8" ry="8" fill="#06b6d4" filter="url(#glow)" />
+                    <ellipse cx="75" cy="90" rx="2" ry="2" fill="#fff" />
+                  </g>
+                  
+                  <!-- Right Eye -->
+                  <g id="avatar-eye-right" class="avatar-eye">
+                    <ellipse cx="125" cy="90" rx="8" ry="8" fill="#06b6d4" filter="url(#glow)" />
+                    <ellipse cx="125" cy="90" rx="2" ry="2" fill="#fff" />
+                  </g>
+                  
+                  <!-- Eyebrows -->
+                  <path id="avatar-brow-left" d="M 65 78 Q 75 78 85 81" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                  <path id="avatar-brow-right" d="M 135 78 Q 125 78 115 81" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                  
+                  <!-- Interactive Mouth Path -->
+                  <path id="avatar-mouth" d="M 80 125 Q 100 125 120 125" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" fill="none" filter="url(#glow)" />
+                  
+                  <!-- Hologram Overlay Grid -->
+                  <line x1="100" y1="20" x2="100" y2="180" stroke="#6366f1" stroke-width="0.5" opacity="0.1" />
+                  <line x1="20" y1="100" x2="180" y2="100" stroke="#6366f1" stroke-width="0.5" opacity="0.1" />
+                </svg>
+              </div>
+            </div>
+            
+            <div id="ai-status-indicator" class="avatar-status-pill">
+              <div id="ai-status-dot" class="status-dot"></div>
+              <span id="ai-status-text">Interviewer is Idle</span>
+            </div>
+          </div>
+
+          <!-- Video & Dialogue Panel (Right) -->
+          <div class="candidate-panel">
+            <!-- WebCam Stream -->
+            <div id="candidate-webcam-card" class="webcam-container">
+              <video id="webcam-stream" class="candidate-video" autoplay playsinline muted></video>
+              
+              <!-- Video Fallback Display -->
+              <div id="webcam-fallback" class="video-fallback-avatar">
+                <i class="fa-solid fa-video-slash"></i>
+                <p style="font-size: 0.875rem;">Webcam stream is disabled or unauthorized</p>
+                <button id="btn-request-cam" class="btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.75rem;">
+                  <i class="fa-solid fa-camera"></i> Enable Camera
+                </button>
+              </div>
+              
+              <!-- Recording Dot Overlay -->
+              <div id="rec-indicator" class="record-indicator" style="display: none;">
+                <div class="record-dot"></div>
+                <span>RECORDING LIVE</span>
+              </div>
+              
+              <!-- Audio Wave Visualizer Overlay -->
+              <canvas id="soundwave-canvas" class="waveform-canvas"></canvas>
+            </div>
+
+            <!-- Dialogue & Input -->
+            <div class="interaction-area">
+              <div class="question-bubble">
+                <div class="question-title">Current Question</div>
+                <div id="interview-question-display" class="question-text">
+                  AI will greet you once you are ready. Click the button to start the dialogue.
+                </div>
+              </div>
+
+              <!-- Input Interface -->
+              <div class="input-container">
+                <textarea id="candidate-response-text" class="response-textarea" placeholder="Type your response here if speech-to-text is inactive, or verify transcription..."></textarea>
+                
+                <div class="action-buttons">
+                  <button id="btn-mic-toggle" class="mic-toggle-btn" title="Toggle voice recording / Speech to Text">
+                    <i class="fa-solid fa-microphone"></i>
+                  </button>
+                  <button id="btn-submit-answer" class="btn-primary submit-answer-btn" disabled>
+                    Submit <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.75rem; color: var(--color-text-muted);">
+                <span id="transcription-indicator"><i class="fa-solid fa-keyboard"></i> Typing mode active. Click microphone to speak.</span>
+                <span id="interview-progress-counter">Question 0 of 0</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- STEP 4: Interview Completed -->
+      <div id="step-completion" class="view-section">
+        <div class="glass-card success-card">
+          <div class="success-icon-wrap">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h2>Interview Completed!</h2>
+          <p>
+            Thank you for participating. Your response records, resume parsing logs, and audio/video files have been archived securely.
+          </p>
+          
+          <div class="results-glance">
+            <div>
+              <div class="glance-item-label">Candidate Name</div>
+              <div id="comp-candidate-name" class="glance-item-val">John Doe</div>
+            </div>
+            <div>
+              <div class="glance-item-label">Overall Evaluation Score</div>
+              <div id="comp-overall-score" class="glance-item-val score">-- / 10</div>
+            </div>
+          </div>
+          
+          <button id="btn-view-results-dashboard" class="btn-primary">
+            <i class="fa-solid fa-chart-simple"></i> View Performance in Recruiter Dashboard
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!--          RECRUITER PORTAL SECTION          -->
+    <!-- ========================================== -->
+    <section id="recruiter-portal" class="view-section">
+      
+      <!-- Metrics Widgets -->
+      <div class="dashboard-grid">
+        <div class="glass-card metric-card">
+          <div class="metric-header">
+            <span>Total Candidates</span>
+            <i class="fa-solid fa-users metric-icon"></i>
+          </div>
+          <div id="metric-total-candidates" class="metric-val">0</div>
+          <div class="metric-desc">Prescreenings completed</div>
+        </div>
+
+        <div class="glass-card metric-card cyan">
+          <div class="metric-header">
+            <span>Average Score</span>
+            <i class="fa-solid fa-star-half-stroke metric-icon"></i>
+          </div>
+          <div id="metric-average-score" class="metric-val">0.0</div>
+          <div class="metric-desc">Out of 10 maximum</div>
+        </div>
+
+        <div class="glass-card metric-card green">
+          <div class="metric-header">
+            <span>High Performers</span>
+            <i class="fa-solid fa-award metric-icon"></i>
+          </div>
+          <div id="metric-high-performers" class="metric-val">0</div>
+          <div class="metric-desc">Scoring 8.5 or higher</div>
+        </div>
+
+        <div class="glass-card metric-card orange">
+          <div class="metric-header">
+            <span>Pending Review</span>
+            <i class="fa-solid fa-clock-rotate-left metric-icon"></i>
+          </div>
+          <div id="metric-pending-review" class="metric-val">0</div>
+          <div class="metric-desc">Requires recruiter look</div>
+        </div>
+      </div>
+
+      <!-- Analytics Row (Charts) -->
+      <div class="analytics-row">
+        <!-- Score Distribution Bar Chart -->
+        <div class="glass-card chart-card">
+          <div class="chart-title">
+            <i class="fa-solid fa-chart-column" style="color: var(--accent-indigo);"></i> Performance Score Distribution
+          </div>
+          <div class="chart-container-inner">
+            <svg id="score-chart-svg" class="chart-canvas-mock"></svg>
+            <div id="chart-tooltip" class="chart-tooltip"></div>
+          </div>
+        </div>
+        
+        <!-- Job Role Distribution Donut Chart -->
+        <div class="glass-card chart-card">
+          <div class="chart-title">
+            <i class="fa-solid fa-chart-pie" style="color: var(--accent-cyan);"></i> Applications by Role
+          </div>
+          <div class="chart-container-inner">
+            <svg id="role-chart-svg" class="chart-canvas-mock"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Table & Controls -->
+      <div class="glass-card" style="padding: 1.5rem;">
+        <div class="dashboard-controls">
+          <div class="search-box-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="dashboard-search-input" class="form-input search-input" placeholder="Search by name, skills, or email...">
+          </div>
+          
+          <div class="filter-controls">
+            <select id="filter-role-select" class="form-select" style="width: 180px; padding: 0.5rem 1rem;">
+              <option value="ALL">All Roles</option>
+              <option value="Software Engineer">Software Engineer</option>
+              <option value="UX Designer">UX Designer</option>
+              <option value="Product Manager">Product Manager</option>
+              <option value="Data Analyst">Data Analyst</option>
+            </select>
+            
+            <select id="filter-score-select" class="form-select" style="width: 180px; padding: 0.5rem 1rem;">
+              <option value="ALL">All Scores</option>
+              <option value="HIGH">High Performers (8.0+)</option>
+              <option value="MID">Average Performers (6.0 - 7.9)</option>
+              <option value="LOW">Low Performers (< 6.0)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="candidates-table">
+            <thead>
+              <tr>
+                <th>Candidate Name</th>
+                <th>Target Role</th>
+                <th>Applied Date</th>
+                <th>Interview Duration</th>
+                <th style="text-align: center;">Evaluation Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="candidates-table-body">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!--           CANDIDATE DETAIL DRAWER          -->
+  <!-- ========================================== -->
+  <div id="detail-overlay" class="detail-overlay">
+    <div class="detail-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title-area">
+          <div id="detail-avatar-placeholder" style="width: 4rem; height: 4rem; border-radius: 50%; background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);">
+            C
+          </div>
+          <div>
+            <h2 id="detail-candidate-name" style="font-size: 1.5rem;">John Doe</h2>
+            <p id="detail-candidate-role" style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 500;">Software Engineer</p>
+          </div>
+        </div>
+        <div>
+          <button id="btn-close-detail" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <div class="drawer-body">
+        <div class="detail-grid">
+          
+          <!-- Metadata Profile & Score Row -->
+          <div class="candidate-meta-grid">
+            <div class="glass-card" style="padding: 1.25rem;">
+              <div class="detail-section-title">Candidate Information</div>
+              <div class="profile-field">
+                <div class="label">Email Contact</div>
+                <div id="detail-candidate-email" class="value">jane.doe@example.com</div>
+              </div>
+              <div class="profile-field">
+                <div class="label">Date Screened</div>
+                <div id="detail-candidate-date" class="value">June 12, 2026</div>
+              </div>
+              <div class="profile-field">
+                <div class="label">Interview Duration</div>
+                <div id="detail-candidate-duration" class="value">10m 15s</div>
+              </div>
+            </div>
+
+            <div class="glass-card" style="padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+              <div class="label" style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600; margin-bottom: 0.5rem;">Overall Grade</div>
+              <div id="detail-candidate-score-badge" class="score-badge high" style="width: 5.5rem; height: 5.5rem; font-size: 2rem; border-width: 2px; margin-bottom: 0.5rem;">
+                9.2
+              </div>
+              <div class="label" style="font-size: 0.7rem; color: var(--color-text-muted);">OUT OF 10.0 POINTS</div>
+            </div>
+          </div>
+
+          <!-- Video Recording Player -->
+          <div class="recruiter-video-section">
+            <div class="detail-section-title">Recorded Interview Playback</div>
+            <div class="recruiter-video-player-wrap">
+              <!-- Webcam Player or Placeholder -->
+              <video id="detail-video-player" class="recruiter-video-player" style="display: none;"></video>
+              
+              <!-- Simulated Static / Waveform Visualizer -->
+              <div id="detail-video-placeholder" class="video-fallback-avatar" style="background: radial-gradient(circle, #0f131f 0%, #05070a 100%);">
+                <div id="mock-avatar-playing" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent-indigo); margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-indigo-glow);">
+                  <img id="detail-placeholder-image" src="" alt="Candidate" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="label" style="color: var(--accent-cyan); font-weight: 600;">SIMULATED MEDIA PLAYBACK</div>
+                <div id="detail-waveform-active" style="display: flex; gap: 4px; align-items: flex-end; height: 20px; margin-top: 0.5rem;">
+                  <span style="width: 3px; height: 10px; background: var(--accent-cyan); border-radius: 2px; animation: voicePulse 1.2s infinite alternate;"></span>
+                  <span style="width: 3px; height: 15px; background: var(--accent-cyan); border-radius: 2px; animation: voicePulse 0.8s infinite alternate; animation-delay: 0.2s;"></span>
+                  <span style="width: 3px; height: 5px; background: var(--accent-cyan); border-radius: 2px; animation: voicePulse 1s infinite alternate; animation-delay: 0.4s;"></span>
+                  <span style="width: 3px; height: 18px; background: var(--accent-cyan); border-radius: 2px; animation: voicePulse 0.6s infinite alternate; animation-delay: 0.1s;"></span>
+                  <span style="width: 3px; height: 12px; background: var(--accent-cyan); border-radius: 2px; animation: voicePulse 0.9s infinite alternate; animation-delay: 0.3s;"></span>
+                </div>
+              </div>
+
+              <!-- Controls -->
+              <div class="video-player-controls">
+                <button id="btn-player-play-pause" class="play-pause-btn"><i class="fa-solid fa-play"></i></button>
+                <div id="video-progress-parent" class="video-progress-container">
+                  <div id="video-progress-fill" class="video-progress-bar"></div>
+                </div>
+                <div id="video-time-display" class="video-time-display">00:00 / 00:00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evaluation Summary & Resume Text -->
+          <div class="glass-card" style="padding: 1.5rem;">
+            <div class="detail-section-title">Performance Summary</div>
+            <p id="detail-summary-text" style="font-size: 0.95rem; line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+              Summarizing candidate strengths and focus areas...
+            </p>
+
+            <div class="detail-section-title">Parsed Resume Text</div>
+            <pre id="detail-resume-text" style="background: rgba(0,0,0,0.25); padding: 1.25rem; border-radius: 8px; font-family: var(--font-body); font-size: 0.85rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap; border: 1px solid var(--border-color); color: var(--color-text-secondary);"></pre>
+          </div>
+
+          <!-- Chronological Transcript Evaluation -->
+          <div class="glass-card" style="padding: 1.5rem;">
+            <div class="detail-section-title">Interview Q&A Breakdown</div>
+            <div id="detail-transcript-timeline" class="timeline-list">
+              <!-- Populated by dashboard.js -->
+            </div>
+          </div>
+
+          <!-- Danger Zone Actions -->
+          <div class="glass-card" style="border-color: rgba(239, 68, 68, 0.2); padding: 1.5rem; background: rgba(239, 68, 68, 0.01);">
+            <div class="detail-section-title" style="color: var(--color-error); border-bottom-color: rgba(239, 68, 68, 0.1);">Danger Zone</div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.15rem; color: var(--color-text-primary);">Delete Screening Record</h4>
+                <p style="font-size: 0.8rem; color: var(--color-text-muted);">Permanently purge all data, transcripts, and recordings for this candidate.</p>
+              </div>
+              <button id="btn-delete-candidate" class="btn-secondary" style="border-color: rgba(239, 68, 68, 0.4); color: var(--color-error); background: rgba(239, 68, 68, 0.05);">
+                <i class="fa-solid fa-trash-can"></i> Delete Profile
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!--           AI SETTINGS CONFIG MODAL         -->
+  <!-- ========================================== -->
+  <div id="api-config-overlay" class="api-config-overlay">
+    <div class="api-config-modal">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+          <i class="fa-solid fa-gears" style="color: var(--accent-indigo);"></i> Interview AI Engine Settings
+        </h3>
+        <button id="btn-close-settings" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="modal-body">
+        
+        <!-- Engine Selector Switch -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <div class="form-label" style="margin-bottom: 0px; font-weight: bold; color: var(--color-text-primary);">Gemini API Engine</div>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted);">Enable live AI generation & evaluation with Google Gemini</div>
+            </div>
+            <div id="settings-engine-switch" class="switch-container">
+              <div class="switch-control"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini API Key input -->
+        <div id="gemini-key-group" class="form-group" style="display: none;">
+          <label class="form-label" for="settings-gemini-key">Gemini API Key</label>
+          <div style="position: relative;">
+            <input type="password" id="settings-gemini-key" class="form-input" style="padding-right: 2.5rem;" placeholder="AIzaSy...">
+            <button id="btn-toggle-key-visibility" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--color-text-secondary); cursor: pointer;" title="Toggle Visibility">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+            Your API key is saved locally in the browser's storage and never sent anywhere else.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-voice-rate">Avatar Speaking Speed: <span id="settings-voice-rate-val">1.0</span>x</label>
+          <input type="range" id="settings-voice-rate" class="form-input" style="padding: 0; cursor: pointer;" min="0.5" max="1.8" step="0.1" value="1.0">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-voice-lang">Synthesis Voice Language</label>
+          <select id="settings-voice-lang" class="form-select">
+            <option value="en-US">English (United States)</option>
+            <option value="en-GB">English (United Kingdom)</option>
+            <option value="es-ES">Spanish (Spain)</option>
+            <option value="fr-FR">French (France)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div class="form-label" style="margin-bottom: 0px; color: var(--color-text-primary);">Auto-Advance Questions</div>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted);">Avatar advances automatically after speech submission</div>
+            </div>
+            <div id="settings-autoadvance-switch" class="switch-container checked">
+              <div class="switch-control"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-cancel-settings" class="btn-secondary">Cancel</button>
+        <button id="btn-save-settings" class="btn-primary">Apply Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Core Orchestration Loader -->
+  <script src="js/storage.js"></script>
+  <script src="js/avatar.js"></script>
+  <script src="js/interview.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

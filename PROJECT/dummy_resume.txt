@@ -1,0 +1,5 @@
+Jane Tester
+UX Designer
+Experience: 5 years at RetailFlow leading product design and creating reusable design systems.
+Skills: Figma, Usability Testing, Interactive Prototyping, Accessibility checks, Design Systems.
+Education: BFA in Graphic Design.
