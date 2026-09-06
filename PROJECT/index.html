@@ -17,7 +17,10 @@
       <div class="logo-text">PreScreen AI</div>
     </div>
     <div class="nav-controls">
-      <button id="nav-btn-candidate" class="mode-switch-btn active">
+      <button id="nav-btn-home" class="mode-switch-btn active">
+        <i class="fa-solid fa-house"></i> Home
+      </button>
+      <button id="nav-btn-candidate" class="mode-switch-btn">
         <i class="fa-solid fa-user-tie"></i> Candidate Portal
       </button>
       <button id="nav-btn-recruiter" class="mode-switch-btn">
@@ -30,7 +33,123 @@
   </header>
 
   <main class="container">
-    
+    <section id="landing-page" class="view-section">
+      <div class="landing-shell">
+        <div class="landing-hero">
+          <div class="landing-copy">
+            <div class="eyebrow">AI-powered hiring intelligence</div>
+            <h1>Intelligent candidate screening, powered by AI.</h1>
+            <p>
+              PreScreen AI helps recruiters evaluate talent faster with structured interviews,
+              resume intelligence, live candidate analysis, and recruiter-ready performance summaries.
+            </p>
+            <div class="hero-actions">
+              <button id="btn-start-screening-landing" class="btn-primary">
+                <i class="fa-solid fa-circle-play"></i> Start Screening
+              </button>
+              <button id="btn-open-recruiter-landing" class="btn-secondary">
+                <i class="fa-solid fa-chart-line"></i> Recruiter Dashboard
+              </button>
+            </div>
+            <div class="hero-stat-row">
+              <div>
+                <strong>3 min</strong>
+                <span>average setup</span>
+              </div>
+              <div>
+                <strong>8.7/10</strong>
+                <span>average score</span>
+              </div>
+              <div>
+                <strong>24/7</strong>
+                <span>screening flow</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="landing-visual">
+            <div class="floating-panel panel-a">
+              <span class="mini-label">Resume Analysis</span>
+              <strong>JavaScript • React • Product Thinking</strong>
+            </div>
+            <div class="ai-orb">
+              <div class="orb-core">
+                <i class="fa-solid fa-brain"></i>
+              </div>
+            </div>
+            <div class="floating-panel panel-b">
+              <span class="mini-label">Interview Status</span>
+              <strong>Live Q&A • Audio + Video</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+            <h3>AI-Powered Interviews</h3>
+            <p>Personalized pre-screen questions tailored to the candidate’s profile and target role.</p>
+          </div>
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-file-lines"></i></div>
+            <h3>Resume Analysis</h3>
+            <p>Extract skills, experience, background, and role-fit signals before the chat begins.</p>
+          </div>
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-comments"></i></div>
+            <h3>Personalized Questions</h3>
+            <p>Adapt interview prompts by role, skills, and resume evidence for relevant screening.</p>
+          </div>
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-chart-column"></i></div>
+            <h3>Automated Evaluation</h3>
+            <p>Generate ratings, recruiter-ready summaries, and strengths versus improvement areas.</p>
+          </div>
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-video"></i></div>
+            <h3>Interview Recording</h3>
+            <p>Capture video, audio, and transcripts to review sessions and assess quality.</p>
+          </div>
+          <div class="feature-card glass-card">
+            <div class="feature-icon"><i class="fa-solid fa-user-check"></i></div>
+            <h3>Recruiter Insights</h3>
+            <p>See score distribution, role trends, and historical screening performance in one place.</p>
+          </div>
+        </div>
+
+        <div class="flow-section glass-card">
+          <div class="section-headline center-align">
+            <div>
+              <div class="eyebrow subtle">How it works</div>
+              <h3>From resume to recruiter insight in four simple steps</h3>
+            </div>
+          </div>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <span>01</span>
+              <h4>Upload Resume</h4>
+              <p>Share a PDF, DOC, DOCX, or text resume from the candidate onboarding flow.</p>
+            </div>
+            <div class="flow-step">
+              <span>02</span>
+              <h4>AI Analyzes Profile</h4>
+              <p>Skills, experience, projects, and role-alignment are extracted from the profile.</p>
+            </div>
+            <div class="flow-step">
+              <span>03</span>
+              <h4>Complete Interview</h4>
+              <p>Answer one question at a time with voice or typed input while the AI avatar guides the flow.</p>
+            </div>
+            <div class="flow-step">
+              <span>04</span>
+              <h4>Receive Evaluation</h4>
+              <p>Get per-question scoring, a final grade, and a recruiter-friendly summary.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ========================================== -->
     <!--          CANDIDATE PORTAL SECTION          -->
     <!-- ========================================== -->
@@ -122,6 +241,26 @@
           </div>
           <div id="processing-logs-box" class="processing-logs">
             <div class="log-entry">Initializing connection...</div>
+          </div>
+          <div id="analysis-summary-panel" class="analysis-summary-panel">
+            <div class="analysis-summary-grid">
+              <div class="summary-chip">
+                <span>Skills</span>
+                <strong id="analysis-skills">Resume insights loading</strong>
+              </div>
+              <div class="summary-chip">
+                <span>Experience</span>
+                <strong id="analysis-experience">Profile reviewed</strong>
+              </div>
+              <div class="summary-chip">
+                <span>Education</span>
+                <strong id="analysis-education">Background assessed</strong>
+              </div>
+              <div class="summary-chip wide">
+                <span>Suggested Focus</span>
+                <strong id="analysis-focus">Role fit assessment</strong>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -391,6 +530,17 @@
         </div>
       </div>
 
+      <div class="glass-card history-card">
+        <div class="section-headline">
+          <div>
+            <div class="eyebrow subtle">History</div>
+            <h3>Pre-Screening History</h3>
+          </div>
+          <span class="history-pill">Recent Sessions</span>
+        </div>
+        <div id="history-summary-list" class="history-summary-list"></div>
+      </div>
+
     </section>
 
   </main>
@@ -595,6 +745,7 @@
 
   <!-- App Core Orchestration Loader -->
   <script src="js/storage.js"></script>
+  <script src="js/services/mockAiService.js"></script>
   <script src="js/avatar.js"></script>
   <script src="js/interview.js"></script>
   <script src="js/dashboard.js"></script>

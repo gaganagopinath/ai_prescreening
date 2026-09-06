@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize DB and Preload Mocks
   StorageService.getCandidates(); // triggers prepopulating if empty
   dashboard.refresh();
+  switchView('landing');
 
   // Global variables
   let uploadedFileBlob = null;
@@ -17,10 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let uploadedFileText = '';
 
   // DOM Elements - Navigation
+  const navHome = document.getElementById('nav-btn-home');
   const navCandidate = document.getElementById('nav-btn-candidate');
   const navRecruiter = document.getElementById('nav-btn-recruiter');
+  const viewLanding = document.getElementById('landing-page');
   const viewCandidate = document.getElementById('candidate-portal');
   const viewRecruiter = document.getElementById('recruiter-portal');
+  const btnStartHome = document.getElementById('btn-start-screening-landing');
+  const btnOpenRecruiterHome = document.getElementById('btn-open-recruiter-landing');
   
   // DOM Elements - Settings Modal
   const settingsBtn = document.getElementById('nav-btn-settings');
@@ -55,31 +60,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- PORTAL ROUTING / SWITCHING ---
   function switchView(target) {
-    if (target === 'candidate') {
-      navCandidate.classList.add('active');
-      navRecruiter.classList.remove('active');
-      viewCandidate.classList.add('active');
-      viewRecruiter.classList.remove('active');
-      
-      // Reset candidate flow to step 1
+    const isLanding = target === 'landing';
+    const isCandidate = target === 'candidate';
+    const isRecruiter = target === 'recruiter';
+
+    navHome?.classList.toggle('active', isLanding);
+    navCandidate?.classList.toggle('active', isCandidate);
+    navRecruiter?.classList.toggle('active', isRecruiter);
+
+    viewLanding?.classList.toggle('active', isLanding);
+    viewCandidate?.classList.toggle('active', isCandidate);
+    viewRecruiter?.classList.toggle('active', isRecruiter);
+
+    if (isCandidate) {
       showCandidateStep('step-upload');
-    } else {
-      navCandidate.classList.remove('active');
-      navRecruiter.classList.add('active');
-      viewCandidate.classList.remove('active');
-      viewRecruiter.classList.add('active');
-      
-      // Stop any active streams
+    }
+
+    if (isRecruiter) {
       interview.stopAndSaveRecording();
       avatar.shutdown();
-      
-      // Refresh dashboard list/charts
       dashboard.refresh();
     }
   }
 
+  navHome?.addEventListener('click', () => switchView('landing'));
   navCandidate.addEventListener('click', () => switchView('candidate'));
   navRecruiter.addEventListener('click', () => switchView('recruiter'));
+  btnStartHome?.addEventListener('click', () => switchView('candidate'));
+  btnOpenRecruiterHome?.addEventListener('click', () => switchView('recruiter'));
   if (btnViewResults) {
     btnViewResults.addEventListener('click', () => switchView('recruiter'));
   }

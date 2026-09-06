@@ -241,6 +241,13 @@ class InterviewSessionManager {
     this.targetRole = role;
     this.resumeFileName = resumeName;
     this.resumeText = resumeText || `Candidate uploaded: ${resumeName}. Applied for ${role}.`;
+    this.resumeAnalysis = window.MockAIService ? window.MockAIService.analyzeResume(name, role, this.resumeText) : {
+      skills: ['Resume analysis ready'],
+      experience: 'Profile reviewed',
+      education: 'Degree and experience assessed',
+      projects: 'Portfolio reviewed',
+      focusAreas: ['Role fit', 'Problem solving', 'Communication']
+    };
     
     this.currentQuestionIndex = 0;
     this.questionsList = [];
@@ -253,6 +260,8 @@ class InterviewSessionManager {
     } catch (err) {
       console.warn("Storage warning for resume upload:", err);
     }
+
+    this.renderResumeAnalysis();
     
     // Compile Questions List
     await this.generateQuestions();
@@ -261,6 +270,19 @@ class InterviewSessionManager {
     this.durationInterval = setInterval(() => {
       this.sessionDuration++;
     }, 1000);
+  }
+
+  renderResumeAnalysis() {
+    const summary = this.resumeAnalysis || {};
+    const skillEl = document.getElementById('analysis-skills');
+    const experienceEl = document.getElementById('analysis-experience');
+    const educationEl = document.getElementById('analysis-education');
+    const focusEl = document.getElementById('analysis-focus');
+
+    if (skillEl) skillEl.innerText = (summary.skills || []).slice(0, 4).join(', ') || 'Resume insights ready';
+    if (experienceEl) experienceEl.innerText = summary.experience || 'Profile reviewed';
+    if (educationEl) educationEl.innerText = summary.education || 'Background assessed';
+    if (focusEl) focusEl.innerText = (summary.focusAreas || []).slice(0, 3).join(' • ') || 'Role fit assessment';
   }
 
   // Generate customized questions based on resume & role
@@ -282,7 +304,9 @@ class InterviewSessionManager {
     
     // Local simulator mode fallback
     await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate thinking delay
-    this.questionsList = this.getSimulatedQuestions(this.targetRole, this.resumeText);
+    this.questionsList = window.MockAIService && window.MockAIService.generateQuestions
+      ? window.MockAIService.generateQuestions(this.targetRole, this.resumeText)
+      : this.getSimulatedQuestions(this.targetRole, this.resumeText);
     document.getElementById('processing-logs-box').innerHTML += `<div class="log-entry complete">Local AI engine generated ${this.questionsList.length} customized questions based on resume.</div>`;
   }
 
@@ -560,61 +584,41 @@ You MUST respond ONLY with a valid JSON array of strings containing these 3 ques
   gradeLocally() {
     let totalScore = 0;
     
-    this.transcript.forEach((item, index) => {
+    this.transcript.forEach((item) => {
       this.assignLocalGradeForItem(item);
       totalScore += item.score;
     });
 
     const average = totalScore / this.transcript.length;
-    
-    // Draft template summaries based on scores
-    let summaryText = '';
     const rounded = Number(average.toFixed(1));
-    
-    if (rounded >= 8.5) {
-      summaryText = `${this.candidateName} showed exceptional response details for the ${this.targetRole} target position. Expressed deep familiarity with core parameters and demonstrated strong technical/conceptual background under review.`;
-    } else if (rounded >= 6.5) {
-      summaryText = `${this.candidateName} completed the screening with satisfactory performance. Demonstrated competent understanding, though answers lacked deep metrics or concrete procedural examples in some areas. Recommended for further interviews.`;
-    } else {
-      summaryText = `The responses provided by ${this.candidateName} were rather brief and lacking in depth. Did not provide specific scenarios or display deep familiarity with ${this.targetRole} core requirements. Needs substantial support.`;
-    }
+
+    const serviceSummary = window.MockAIService && window.MockAIService.summarizePerformance
+      ? window.MockAIService.summarizePerformance(this.candidateName, this.targetRole, this.transcript)
+      : `${this.candidateName} completed the screening with a score of ${rounded}/10 for the ${this.targetRole} position.`;
 
     return {
       overallScore: rounded,
-      summary: summaryText
+      summary: serviceSummary
     };
   }
 
   // Grade individual answer locally
   assignLocalGradeForItem(item) {
-    const text = item.answer.toLowerCase();
-    const wordCount = item.answer.trim().split(/\s+/).length;
-    
-    // Base grade on word count
-    let score = 5.0;
-    if (wordCount > 60) score = 8.5;
-    else if (wordCount > 30) score = 7.5;
-    else if (wordCount > 15) score = 6.0;
-    else if (wordCount > 5) score = 5.0;
-    else score = 3.0;
+    const evaluation = window.MockAIService && window.MockAIService.evaluateAnswer
+      ? window.MockAIService.evaluateAnswer(item.question, item.answer)
+      : {
+          score: 6.5,
+          relevance: 6.5,
+          technicalDepth: 6.5,
+          communication: 6.5,
+          feedback: 'Answer is acceptable but could be stronger with more detail.'
+        };
 
-    // Give keyword bonuses
-    const keywords = ['experience', 'project', 'scalable', 'optimize', 'framework', 'collaborate', 'team', 'design', 'analytics', 'data', 'metrics', 'sprint', 'user', 'solution'];
-    keywords.forEach(word => {
-      if (text.includes(word)) score += 0.2;
-    });
-
-    // Cap score at 10.0
-    item.score = Number(Math.min(10.0, score).toFixed(1));
-
-    // Draft feedback comments
-    if (item.score >= 8.5) {
-      item.evaluation = "Excellent detail. Covered multiple conceptual scenarios and structured the answer in a logical, professional manner.";
-    } else if (item.score >= 6.5) {
-      item.evaluation = "Good response, but could be improved. Try adding specific metrics, numbers, or naming direct tool workflows you used.";
-    } else {
-      item.evaluation = "Answer is too brief. Did not provide enough context or examples to fully answer the question.";
-    }
+    item.score = Number(Math.min(10, evaluation.score).toFixed(1));
+    item.evaluation = evaluation.feedback;
+    item.relevance = evaluation.relevance;
+    item.technicalDepth = evaluation.technicalDepth;
+    item.communication = evaluation.communication;
   }
 
   // LLM API Call for grading

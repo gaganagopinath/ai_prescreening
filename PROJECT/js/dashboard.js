@@ -89,6 +89,46 @@ class RecruiterDashboard {
     this.renderMetricsSummary();
     this.renderCharts();
     this.renderCandidatesList();
+    this.renderHistorySummary();
+  }
+
+  renderHistorySummary() {
+    const list = document.getElementById('history-summary-list');
+    if (!list) return;
+
+    const recent = [...this.candidates]
+      .sort((a, b) => new Date(b.appliedDate) - new Date(a.appliedDate))
+      .slice(0, 4);
+
+    if (!recent.length) {
+      list.innerHTML = '<div class="history-item empty">No session records available yet.</div>';
+      return;
+    }
+
+    list.innerHTML = recent.map((candidate) => {
+      const scoreClass = candidate.overallScore >= 8 ? 'high' : candidate.overallScore >= 6 ? 'mid' : 'low';
+      const date = new Date(candidate.appliedDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      return `
+        <div class="history-item" data-id="${candidate.id}">
+          <div class="history-main">
+            <div class="history-name">${candidate.name}</div>
+            <div class="history-meta">${candidate.role} • ${date}</div>
+          </div>
+          <div class="history-badges">
+            <span class="status-badge ${candidate.status}">${candidate.status}</span>
+            <span class="score-badge ${scoreClass}">${candidate.overallScore.toFixed(1)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.history-item').forEach((card) => {
+      card.addEventListener('click', () => this.openCandidateDetail(card.dataset.id));
+    });
   }
 
   // Calculate high level metrics

@@ -50,7 +50,7 @@ class DatabaseService {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['resumes'], 'readwrite');
-      const store = transaction.objectStore(['resumes']);
+      const store = transaction.objectStore('resumes');
       
       const record = {
         candidateId,
@@ -83,7 +83,7 @@ class DatabaseService {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['recordings'], 'readwrite');
-      const store = transaction.objectStore(['recordings']);
+      const store = transaction.objectStore('recordings');
       
       const record = {
         candidateId,
