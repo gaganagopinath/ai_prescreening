@@ -10,12 +10,36 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize DB and Preload Mocks
   StorageService.getCandidates(); // triggers prepopulating if empty
   dashboard.refresh();
-  switchView('landing');
 
   // Global variables
   let uploadedFileBlob = null;
   let uploadedFileName = '';
   let uploadedFileText = '';
+
+  // Toast notification helper for validation and error states
+  const appToast = document.getElementById('app-toast');
+  function showAppMessage(message, type = 'info', duration = 3500) {
+    if (!appToast) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    appToast.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, duration);
+  }
+  window.showAppMessage = showAppMessage;
+
+  function clearFileSelection() {
+    uploadedFileBlob = null;
+    uploadedFileName = '';
+    uploadedFileText = '';
+    fileInput.value = '';
+    fileContainer.classList.remove('active');
+    dropZone.style.display = 'block';
+    fileNameDisplay.innerText = 'resume.pdf';
+    fileSizeDisplay.innerText = 'No file selected';
+  }
 
   // DOM Elements - Navigation
   const navHome = document.getElementById('nav-btn-home');
@@ -57,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements - Interview Controls
   const btnSubmitAnswer = document.getElementById('btn-submit-answer');
   const btnViewResults = document.getElementById('btn-view-results-dashboard');
+
+  switchView('landing');
 
   // --- PORTAL ROUTING / SWITCHING ---
   function switchView(target) {
@@ -206,8 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const validateStartForm = () => {
     const nameVal = inputName.value.trim();
     const emailVal = inputEmail.value.trim();
-    // Allow proceeding without a resume file; just require name and email
-    btnStartScreening.disabled = !(nameVal && emailVal);
+    const hasValidResume = Boolean(uploadedFileName && uploadedFileText !== '');
+    btnStartScreening.disabled = !(nameVal && emailVal && hasValidResume);
   };
 
   inputName.addEventListener('input', validateStartForm);
@@ -242,17 +268,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // Remove File pill click
   btnRemoveFile.addEventListener('click', (e) => {
     e.stopPropagation();
-    uploadedFileBlob = null;
-    uploadedFileName = '';
-    uploadedFileText = '';
-    fileInput.value = '';
-    
-    fileContainer.classList.remove('active');
-    dropZone.style.display = 'block';
+    clearFileSelection();
     validateStartForm();
   });
 
+  function isAcceptedResumeFile(file) {
+    const acceptedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+    const lowerName = file.name.toLowerCase();
+    return acceptedTypes.includes(file.type) || lowerName.endsWith('.pdf') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx') || lowerName.endsWith('.txt');
+  }
+
   function handleFileSelected(file) {
+    if (!file) {
+      showAppMessage('No resume file was selected. Please choose a valid resume to continue.', 'error');
+      return;
+    }
+
+    if (!isAcceptedResumeFile(file)) {
+      clearFileSelection();
+      showAppMessage('Unsupported file type. Please upload a PDF, DOC, DOCX, or TXT resume.', 'error');
+      return;
+    }
+
     uploadedFileBlob = file;
     uploadedFileName = file.name;
 
@@ -267,10 +309,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Display PDF icon or Word icon
     const icon = fileContainer.querySelector('.file-pill-icon');
-    if (file.name.endsWith('.pdf')) {
+    if (file.name.toLowerCase().endsWith('.pdf')) {
       icon.className = 'fa-solid fa-file-pdf file-pill-icon';
       icon.style.color = 'var(--color-error)';
-    } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+    } else if (file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc')) {
       icon.className = 'fa-solid fa-file-word file-pill-icon';
       icon.style.color = '#3b82f6';
     } else {
@@ -283,16 +325,20 @@ document.addEventListener('DOMContentLoaded', () => {
     fileContainer.classList.add('active');
 
     // Parse Text content if txt, else build simulated text placeholder
-    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+    if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
       const reader = new FileReader();
       reader.onload = (e) => {
         uploadedFileText = e.target.result;
         validateStartForm();
       };
+      reader.onerror = () => {
+        uploadedFileText = '';
+        validateStartForm();
+        showAppMessage('The selected resume could not be read. Please choose a different file.', 'error');
+      };
       reader.readAsText(file);
     } else {
-      // Simulate binary text extraction based on profile metadata
-      uploadedFileText = ''; // compiled on start
+      uploadedFileText = `Candidate: ${inputName.value.trim() || 'Applicant'}\nPosition: ${selectRole.value}\nResume uploaded: ${file.name}\nExperience summary: professional background reviewed and considered for role alignment.`;
       validateStartForm();
     }
   }
@@ -304,6 +350,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = inputName.value.trim();
     const email = inputEmail.value.trim();
     const role = selectRole.value;
+
+    if (!name || !email) {
+      showAppMessage('Please complete your name and email before starting the interview.', 'error');
+      return;
+    }
+
+    if (!uploadedFileName || !uploadedFileText) {
+      showAppMessage('Please upload a valid resume before starting the interview.', 'error');
+      return;
+    }
 
     // If PDF/DOCX was uploaded, compile dynamic simulated text based on their targeted position
     if (!uploadedFileText) {

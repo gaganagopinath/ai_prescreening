@@ -1,136 +1,142 @@
 # PreScreen AI
 
-An internship-ready prototype for an AI-assisted candidate pre-screening platform. The project simulates a realistic recruitment workflow with resume analysis, AI-guided interview questions, speech and recording support, scoring, and recruiter analytics.
+## Overview
 
-## Product Overview
+PreScreen AI is a browser-based prototype for an AI-assisted recruitment pre-screening workflow. It simulates a realistic hiring pipeline where a candidate uploads a resume, completes an AI-guided interview, receives evaluation feedback, and is reviewed from a recruiter dashboard.
 
-PreScreen AI helps recruiters automate the first stage of candidate screening. The system supports:
+This project was built as a professional internship assignment, with emphasis on product flow, polished UX, browser APIs, mock AI service architecture, and local persistence. It is intentionally frontend-only and designed so the mock AI layer can later be replaced by a secure backend service connected to Gemini, OpenAI, or another provider.
 
-- Resume upload and validation
-- AI-assisted resume analysis
-- Personalized candidate interview generation
-- Voice and text-based interview responses
-- Microphone and webcam recording
-- Per-question evaluation
-- Final score and performance summary
-- Recruiter dashboard with historical candidate data
+## Problem Statement
+
+Recruiters and hiring teams often spend significant time on early-stage candidate filtering. The goal of this prototype is to reduce the manual effort of resume screening by combining resume insights, structured interview questions, automated scoring, and recruiter-ready summaries in a single workflow.
 
 ## Features
 
-- Landing page with modern SaaS dashboard styling
-- Candidate onboarding flow
-- AI interview room with animated avatar
-- Browser-based speech recognition with typed fallback
-- Session recording with MediaRecorder and local browser storage
-- Mock AI service layer for resume parsing, question generation, and assessments
-- Recruiter dashboard with filters, charts, and candidate detail review
-- Persistent local history using localStorage + IndexedDB
+- Candidate onboarding with applicant details and role selection
+- Resume upload validation for PDF, DOC, DOCX, and text files
+- Simulated resume analysis and role-fit extraction
+- AI-style interviewer greeting and self-introduction flow
+- One-question-at-a-time interview experience
+- Text fallback and speech recognition support
+- Webcam and microphone permission handling
+- Session recording and local storage persistence
+- Scoring and performance summary generation
+- Recruiter dashboard with search, filters, metrics, and detail view
+- Demo dataset support alongside real session data
 
-## Tech Stack
+## Functional Requirements Coverage
+
+| Requirement | Implementation | Status |
+| --- | --- | --- |
+| AI-driven interviews | AI avatar guides the interview flow with personalized prompts | Implemented |
+| Resume upload | File selector and drag-and-drop upload area with validation | Implemented |
+| Resume analysis | Mock AI service extracts skills, experience, focus areas, and role-fit cues | Implemented (prototype/mock) |
+| AI greeting | Interview begins with a welcome message and introduction prompt | Implemented |
+| Self-introduction | Candidate provides introductory response before question set starts | Implemented |
+| Questioning and response observation | One-by-one Q&A with transcript capture and answer submission | Implemented |
+| Response evaluation | Mock evaluation engine scores relevance, technical depth, communication, and feedback | Implemented (prototype/mock) |
+| Score and summary | Final score is generated and shown in the completion view and dashboard | Implemented |
+| Session recording | Browser MediaRecorder captures live session media when supported | Implemented (browser dependent) |
+| Session closure | Final summary / completion state saved before dashboard review | Implemented |
+| Pre-screening history | Recruiter dashboard lists real stored sessions and demo entries | Implemented |
+| Interactive avatar | SVG-based AI avatar changes state to idle, thinking, listening, and speaking | Implemented |
+
+## Technology Stack
 
 - HTML5
-- CSS3 with custom design system and responsive layouts
-- Vanilla JavaScript (ES6 modules-friendly structure)
-- Web Speech API for speech-to-text
-- MediaRecorder API for interview recording
-- IndexedDB for resume and recording storage
-- localStorage for metadata and settings
+- CSS3
+- JavaScript ES6+
+- Web Speech API
+- MediaDevices API
+- MediaRecorder API
+- IndexedDB
+- LocalStorage
 
-## Project Structure
+## Architecture
 
-- PROJECT/index.html — primary app shell
-- PROJECT/css/style.css — design system and responsive styling
-- PROJECT/js/app.js — navigation and orchestration
-- PROJECT/js/avatar.js — AI avatar states, speech synthesis, and recognition
-- PROJECT/js/interview.js — interview lifecycle and evaluation logic
-- PROJECT/js/dashboard.js — recruiter dashboard and candidate detail drawer
-- PROJECT/js/storage.js — IndexedDB and localStorage handling
-- PROJECT/js/services/mockAiService.js — mock AI service for future API replacement
+Frontend
+↓
+Application State
+↓
+AI Service Layer
+↓
+Storage Layer
+↓
+Browser APIs
 
-## How to Run Locally
+The architecture is intentionally lightweight and vanilla JavaScript based. The UI is separated from the service logic so it is easy to switch from the mock AI layer to a real backend provider later without rewriting the interview flow.
 
-1. Open the project folder in a browser or serve it from a local static server.
-2. From the project root, run:
+## How to Run
 
-   python -m http.server 8000
+From the project root:
 
-3. Open:
+```bash
+cd PROJECT
+python -m http.server 8000
+```
 
-   http://localhost:8000/
+Then open:
 
-> If you are opening the file directly in the browser, some browser APIs like getUserMedia and speech recognition may require a local server or secure context for full functionality.
+```text
+http://localhost:8000/
+```
 
-## Interview Flow
+## AI Architecture
 
-1. Candidate enters profile details
-2. Resume is uploaded and validated
-3. Resume analysis runs in a simulated AI processing screen
-4. Personalized interview questions are generated
-5. The AI avatar greets the candidate and starts the self-introduction step
-6. Candidate responds with voice or typed input
-7. Each response is scored and feedback is generated
-8. A final score and summary are produced
-9. Recruiter dashboard can review the completed screening
+The current version uses a mock AI service to simulate resume analysis, question generation, answer evaluation, and final summary generation. This keeps the prototype functional without hardcoded API keys or backend credentials.
 
-## Mock AI Architecture
-
-The project uses a clean mock AI layer so the prototype behaves like a real AI-driven recruitment platform without requiring an external API key.
-
-The mock service is intentionally separated from the UI in:
+The mock service is intentionally isolated in:
 
 - PROJECT/js/services/mockAiService.js
 
-This service currently handles:
+A production version would replace these methods with secure backend calls to Gemini, OpenAI, Azure OpenAI, or another LLM provider. The frontend should continue to interact with the same service interface, rather than depending on any single vendor implementation.
 
-- Resume analysis extraction
-- Question generation
-- Response evaluation
-- Final interview summary generation
+## Storage Architecture
 
-Future integration points:
+The app stores data in two places:
 
-- Replace mock methods with Gemini API calls
-- Replace with OpenAI responses or Azure-hosted AI
-- Add backend endpoints for secure candidate data handling
+- IndexedDB: resume files and recorded session media
+- LocalStorage: candidate metadata, settings, and dashboard session records
 
-## Storage Strategy
+This is appropriate for a browser-based prototype but not for production secure storage. The current implementation is intentionally local-only and browser-dependent.
 
-- localStorage: UI settings, candidate metadata, and session records
-- IndexedDB: resume files and media recordings
+## Security Considerations
 
-This keeps the prototype lightweight while preserving realistic data lifecycle behavior.
+This is a client-side prototype. It is not production-grade secure storage and should not be treated as a secure deployment.
 
-## Limitations of the Prototype
+A production version should include:
 
-- It is a front-end prototype, not a production backend
-- AI is simulated and heuristic-based rather than real model inference
-- Recording and speech features depend on browser support and permissions
-- No authentication, role-based access control, or production database is included
+- authenticated backend services
+- server-side database storage
+- secure object storage for recordings
+- encryption for sensitive data
+- access control and role-based authorization
+- privacy protection and compliant handling of candidate records
+
+## Known Limitations
+
+- The AI layer is mock/heuristic, not a real LLM inference engine
+- Speech recognition depends on browser support and hardware permissions
+- Session media is saved locally in the browser and is not production cloud storage
+- There is no real authentication or admin authorization system
+- Resume parsing is simulated and lightweight rather than full document intelligence
 
 ## Future Improvements
 
-- Integrate Gemini/OpenAI API with secure backend proxy
-- Add login and recruiter authentication
-- Save detailed question-by-question evaluations to a server
-- Add real file parsing for PDF/DOCX resume extraction
-- Provide candidate report PDFs and export features
-- Add analytics over time and hiring funnel reporting
+- Real backend LLM integration with secure API proxy
+- Candidate authentication and recruiter login flow
+- Cloud storage for recordings and resumes
+- Production database with relational or NoSQL persistence
+- Role-based recruiter access and audit history
+- Advanced analytics and trend reporting
+- Better resume parsing for PDF and DOCX extraction
+- Deeper evaluation scoring and benchmark models
 
-## Accessibility and Responsiveness
+## Security and Data Privacy Notes
 
-- Responsive layout for desktop, tablet, and mobile screens
-- High contrast UI for readability
-- Keyboard-accessible controls for core surfaces
-- Graceful fallback when audio or speech APIs are unsupported
+This prototype stores interview data in the browser for demo purposes. It is not intended for production use with actual personal data without a secure backend and proper data protection safeguards.
 
-## Setup Notes for Internship Submission
+## Demo Notes
 
-This project is designed to demonstrate:
+The recruiter dashboard includes demo candidate records so the project can be demonstrated without needing a live backend. Real sessions generated through the candidate flow are also saved to the dashboard, making the demo realistic while staying simple.
 
-- realistic product flow
-- structured frontend architecture
-- polished UX
-- local persistence
-- simulation of AI-driven hiring workflows
-
-It is suitable as a professional prototype and can be expanded into a full-stack product.

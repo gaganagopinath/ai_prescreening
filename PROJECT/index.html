@@ -32,6 +32,8 @@
     </div>
   </header>
 
+  <div id="app-toast" class="app-toast" aria-live="polite"></div>
+
   <main class="container">
     <section id="landing-page" class="view-section">
       <div class="landing-shell">
@@ -685,7 +687,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
             <div>
               <div class="form-label" style="margin-bottom: 0px; font-weight: bold; color: var(--color-text-primary);">Gemini API Engine</div>
-              <div style="font-size: 0.75rem; color: var(--color-text-muted);">Enable live AI generation & evaluation with Google Gemini</div>
+              <div style="font-size: 0.75rem; color: var(--color-text-muted);">Optional: use a real Google Gemini API key for live AI generation. Leave it off to keep using the built-in mock AI flow.</div>
             </div>
             <div id="settings-engine-switch" class="switch-container">
               <div class="switch-control"></div>
@@ -695,7 +697,7 @@
 
         <!-- Gemini API Key input -->
         <div id="gemini-key-group" class="form-group" style="display: none;">
-          <label class="form-label" for="settings-gemini-key">Gemini API Key</label>
+          <label class="form-label" for="settings-gemini-key">Google Gemini API Key (Optional)</label>
           <div style="position: relative;">
             <input type="password" id="settings-gemini-key" class="form-input" style="padding-right: 2.5rem;" placeholder="AIzaSy...">
             <button id="btn-toggle-key-visibility" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--color-text-secondary); cursor: pointer;" title="Toggle Visibility">
@@ -703,7 +705,7 @@
             </button>
           </div>
           <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-            Your API key is saved locally in the browser's storage and never sent anywhere else.
+            This is only used to call the real Gemini API when you enable it. If you leave it blank, the app continues with the local mock AI logic for demo purposes.
           </div>
         </div>
 

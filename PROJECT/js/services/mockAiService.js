@@ -4,7 +4,8 @@
   // Mock AI service layer for the prototype.
   // Replace these methods with Gemini/OpenAI API calls when the backend is connected.
   const MockAIService = {
-    analyzeResume(candidateName, role, resumeText) {
+    // API boundary: replace these methods with Gemini/OpenAI or backend service calls in production.
+    generateResumeAnalysis(candidateName, role, resumeText) {
       const text = (resumeText || '').toLowerCase();
       const skills = [
         'javascript', 'typescript', 'react', 'node', 'sql', 'python',
@@ -29,7 +30,7 @@
         'Behavioral and collaboration patterns'
       ];
 
-      return {
+      const analysis = {
         candidateName,
         role,
         skills: resolvedSkills,
@@ -39,6 +40,12 @@
         focusAreas,
         summary: `${candidateName || 'Candidate'} demonstrates a profile suited for ${role || 'the role'} with strengths in ${resolvedSkills.slice(0, 2).join(' and ')}.`
       };
+
+      return analysis;
+    },
+
+    analyzeResume(candidateName, role, resumeText) {
+      return this.generateResumeAnalysis(candidateName, role, resumeText);
     },
 
     generateQuestions(role, resumeText) {
@@ -128,6 +135,10 @@
         return `${candidateName} showed a solid baseline for the ${role} role. The answers were relevant and structured, but some responses would benefit from deeper examples, more measurable impact, and stronger technical specificity.`;
       }
       return `${candidateName} showed emerging potential for the ${role} role, but answers were light on concrete examples and technical depth. Additional experience-based detail and clearer communication would improve the screening outcome.`;
+    },
+
+    generateFinalSummary(candidateName, role, transcript) {
+      return this.summarizePerformance(candidateName, role, transcript);
     }
   };
 

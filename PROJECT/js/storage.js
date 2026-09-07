@@ -71,7 +71,7 @@ class DatabaseService {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['resumes'], 'readonly');
-      const store = transaction.objectStore(['resumes']);
+      const store = transaction.objectStore('resumes');
       const request = store.get(candidateId);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -102,7 +102,7 @@ class DatabaseService {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(['recordings'], 'readonly');
-      const store = transaction.objectStore(['recordings']);
+      const store = transaction.objectStore('recordings');
       const request = store.get(candidateId);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -137,9 +137,17 @@ const StorageService = {
     const list = localStorage.getItem('pre_screening_candidates');
     if (!list) {
       this.prepopulateMockData();
-      return JSON.parse(localStorage.getItem('pre_screening_candidates'));
+      return JSON.parse(localStorage.getItem('pre_screening_candidates') || '[]');
     }
-    return JSON.parse(list);
+
+    try {
+      return JSON.parse(list);
+    } catch (error) {
+      console.warn('Stored candidate data was invalid. Resetting the dashboard list.', error);
+      localStorage.removeItem('pre_screening_candidates');
+      this.prepopulateMockData();
+      return JSON.parse(localStorage.getItem('pre_screening_candidates') || '[]');
+    }
   },
 
   // Save candidate record

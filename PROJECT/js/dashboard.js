@@ -271,33 +271,29 @@ class RecruiterDashboard {
     
     scoreSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
-    // Layout configuration
-    const paddingLeft = 40;
-    const paddingRight = 20;
-    const paddingTop = 25;
-    const paddingBottom = 40;
+    const paddingLeft = 42;
+    const paddingRight = 18;
+    const paddingTop = 18;
+    const paddingBottom = 42;
 
     const graphWidth = svgWidth - paddingLeft - paddingRight;
     const graphHeight = svgHeight - paddingTop - paddingBottom;
     const colWidth = graphWidth / bins.length;
 
-    // Draw horizontal gridlines & axis indicators
     const gridCount = 4;
     for (let i = 0; i <= gridCount; i++) {
       const y = paddingTop + (graphHeight * i) / gridCount;
       const value = Math.round(maxCount - (maxCount * i) / gridCount);
-      
-      // Line
+
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', paddingLeft);
       line.setAttribute('y1', y);
       line.setAttribute('x2', svgWidth - paddingRight);
       line.setAttribute('y2', y);
-      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.04)');
-      line.setAttribute('stroke-width', 1);
+      line.setAttribute('stroke', 'rgba(148, 163, 184, 0.16)');
+      line.setAttribute('stroke-width', '1');
       scoreSvg.appendChild(line);
 
-      // Y-axis Label
       const yText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       yText.setAttribute('x', paddingLeft - 10);
       yText.setAttribute('y', y + 4);
@@ -308,31 +304,26 @@ class RecruiterDashboard {
       scoreSvg.appendChild(yText);
     }
 
-    // Draw bars
     bins.forEach((bin, idx) => {
-      const colX = paddingLeft + idx * colWidth + colWidth * 0.15;
-      const barW = colWidth * 0.7;
+      const colX = paddingLeft + idx * colWidth + colWidth * 0.16;
+      const barW = colWidth * 0.68;
       const barH = (bin.count / maxCount) * graphHeight;
       const colY = paddingTop + graphHeight - barH;
 
-      // Draw standard SVG bar rect
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       rect.setAttribute('x', colX);
       rect.setAttribute('y', colY);
       rect.setAttribute('width', barW);
-      rect.setAttribute('height', Math.max(2, barH));
-      rect.setAttribute('rx', 4);
-      
-      // Accent gradient depending on bin index
-      const glowColor = idx >= 3 ? 'var(--color-success)' : (idx >= 1 ? 'var(--accent-indigo)' : 'var(--color-error)');
+      rect.setAttribute('height', Math.max(4, barH));
+      rect.setAttribute('rx', 6);
+      const glowColor = idx >= 3 ? '#10b981' : (idx >= 1 ? '#6366f1' : '#f97316');
       rect.setAttribute('fill', glowColor);
-      rect.setAttribute('opacity', 0.8);
+      rect.setAttribute('opacity', '0.9');
       rect.classList.add('svg-chart-bar');
-      
-      // Mouse interactions for Tooltip
+
       const tooltip = document.getElementById('chart-tooltip');
       rect.addEventListener('mouseover', (e) => {
-        rect.setAttribute('opacity', 1);
+        rect.setAttribute('opacity', '1');
         if (tooltip) {
           tooltip.style.display = 'block';
           tooltip.innerHTML = `<strong>${bin.label}</strong>: ${bin.count} candidate${bin.count !== 1 ? 's' : ''}`;
@@ -346,18 +337,17 @@ class RecruiterDashboard {
         }
       });
       rect.addEventListener('mouseout', () => {
-        rect.setAttribute('opacity', 0.8);
+        rect.setAttribute('opacity', '0.9');
         if (tooltip) tooltip.style.display = 'none';
       });
 
       scoreSvg.appendChild(rect);
 
-      // Draw bottom X label
       const xText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       xText.setAttribute('x', paddingLeft + idx * colWidth + colWidth / 2);
       xText.setAttribute('y', svgHeight - 15);
       xText.setAttribute('fill', 'var(--color-text-muted)');
-      xText.setAttribute('font-size', '11px');
+      xText.setAttribute('font-size', '10px');
       xText.setAttribute('text-anchor', 'middle');
       xText.innerText = bin.label;
       scoreSvg.appendChild(xText);
@@ -398,19 +388,14 @@ class RecruiterDashboard {
       return;
     }
 
-    // Coordinates configuration
-    const centerX = svgWidth * 0.35;
+    const centerX = svgWidth * 0.34;
     const centerY = svgHeight / 2;
-    const radius = 60;
+    const radius = 62;
     const strokeWidth = 14;
     const circumference = 2 * Math.PI * radius;
-
-    // Palette gradients
     const colors = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b'];
 
     let currentOffset = 0;
-
-    // Render donut circle segments
     roles.forEach((role, idx) => {
       const percentage = role.count / total;
       const strokeLength = percentage * circumference;
@@ -423,12 +408,10 @@ class RecruiterDashboard {
       circle.setAttribute('fill', 'transparent');
       circle.setAttribute('stroke', colors[idx % colors.length]);
       circle.setAttribute('stroke-width', strokeWidth);
-      circle.setAttribute('stroke-dasharray', circumference);
-      circle.setAttribute('stroke-dashoffset', strokeOffset);
+      circle.setAttribute('stroke-dasharray', `${strokeLength} ${circumference}`);
+      circle.setAttribute('stroke-dashoffset', `${-currentOffset}`);
       circle.setAttribute('transform', `rotate(-90 ${centerX} ${centerY})`);
-      
-      // hover visual changes
-      circle.setAttribute('style', 'transition: stroke-width 0.2s ease; cursor: pointer;');
+      circle.setAttribute('style', 'transition: stroke-width 0.2s ease; cursor: pointer; opacity: 0.96;');
       circle.addEventListener('mouseover', () => circle.setAttribute('stroke-width', strokeWidth + 4));
       circle.addEventListener('mouseout', () => circle.setAttribute('stroke-width', strokeWidth));
 
@@ -436,7 +419,6 @@ class RecruiterDashboard {
       currentOffset -= strokeLength;
     });
 
-    // Inner center text (Display total candidates)
     const centerValText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     centerValText.setAttribute('x', centerX);
     centerValText.setAttribute('y', centerY + 4);
@@ -449,42 +431,36 @@ class RecruiterDashboard {
 
     const centerLabelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     centerLabelText.setAttribute('x', centerX);
-    centerLabelText.setAttribute('y', centerY + 18);
+    centerLabelText.setAttribute('y', centerY + 20);
     centerLabelText.setAttribute('fill', 'var(--color-text-muted)');
     centerLabelText.setAttribute('font-size', '9px');
     centerLabelText.setAttribute('text-anchor', 'middle');
     centerLabelText.innerText = 'TOTAL';
     roleSvg.appendChild(centerLabelText);
 
-    // Draw Legend panel on the right
-    const legendX = svgWidth * 0.72;
+    const legendX = svgWidth * 0.7;
     const legendStartY = centerY - (roles.length * 20) / 2;
 
     roles.forEach((role, idx) => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      
-      // Color dot
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       rect.setAttribute('x', legendX);
-      rect.setAttribute('y', legendStartY + idx * 20);
+      rect.setAttribute('y', legendStartY + idx * 22);
       rect.setAttribute('width', 10);
       rect.setAttribute('height', 10);
       rect.setAttribute('rx', 2);
       rect.setAttribute('fill', colors[idx % colors.length]);
       g.appendChild(rect);
 
-      // Label text
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', legendX + 16);
-      text.setAttribute('y', legendStartY + idx * 20 + 9);
+      text.setAttribute('y', legendStartY + idx * 22 + 9);
       text.setAttribute('fill', 'var(--color-text-secondary)');
       text.setAttribute('font-size', '11px');
-      
-      // Smart abbreviation of roles if too long
       let displayName = role.name;
-      if (displayName.length > 15) displayName = displayName.substring(0, 12) + '...';
-      text.innerText = `${displayName} (${role.count})`;
-      
+      if (displayName.length > 14) displayName = displayName.substring(0, 12) + '...';
+      const percentage = ((role.count / total) * 100).toFixed(0);
+      text.innerText = `${displayName} (${percentage}%)`;
       g.appendChild(text);
       roleSvg.appendChild(g);
     });

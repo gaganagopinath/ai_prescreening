@@ -278,7 +278,11 @@ class AIAvatarController {
   // Toggle listening
   toggleListening(onResultCallback, onErrorCallback) {
     if (!this.recognition) {
-      alert('Speech-to-text is not supported in this browser. Please type your response directly in the text input box.');
+      if (typeof window.showAppMessage === 'function') {
+        window.showAppMessage('Voice input is not available in this browser. Please type your answer instead.', 'info');
+      } else {
+        console.warn('Speech-to-text is not supported in this browser. Please type your response directly in the text input box.');
+      }
       return;
     }
 
