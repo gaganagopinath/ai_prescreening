@@ -86,6 +86,10 @@ class RecruiterDashboard {
   // Load and refresh dashboard records
   refresh() {
     this.candidates = StorageService.getCandidates();
+    if (!this.candidates || this.candidates.length === 0) {
+      StorageService.prepopulateMockData();
+      this.candidates = StorageService.getCandidates();
+    }
     this.renderMetricsSummary();
     this.renderCharts();
     this.renderCandidatesList();
@@ -266,9 +270,10 @@ class RecruiterDashboard {
     });
 
     const maxCount = Math.max(1, ...bins.map(b => b.count));
-    const svgWidth = scoreSvg.clientWidth || 500;
-    const svgHeight = scoreSvg.clientHeight || 240;
-    
+    const svgWidth = Math.max(scoreSvg.clientWidth || scoreSvg.getBoundingClientRect().width || 500, 320);
+    const svgHeight = Math.max(scoreSvg.clientHeight || scoreSvg.getBoundingClientRect().height || 240, 180);
+    scoreSvg.setAttribute('width', '100%');
+    scoreSvg.setAttribute('height', '100%');
     scoreSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
     const paddingLeft = 42;
@@ -372,8 +377,10 @@ class RecruiterDashboard {
     }));
 
     const total = roles.reduce((sum, r) => sum + r.count, 0);
-    const svgWidth = roleSvg.clientWidth || 300;
-    const svgHeight = roleSvg.clientHeight || 240;
+    const svgWidth = Math.max(roleSvg.clientWidth || roleSvg.getBoundingClientRect().width || 300, 260);
+    const svgHeight = Math.max(roleSvg.clientHeight || roleSvg.getBoundingClientRect().height || 240, 180);
+    roleSvg.setAttribute('width', '100%');
+    roleSvg.setAttribute('height', '100%');
     roleSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
     if (total === 0) {
