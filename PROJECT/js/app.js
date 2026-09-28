@@ -9,12 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize DB and Preload Mocks
   StorageService.getCandidates(); // triggers prepopulating if empty
+  StorageService.getSettings(); // removes any API credentials saved by older versions
   dashboard.refresh();
 
   // Global variables
   let uploadedFileBlob = null;
   let uploadedFileName = '';
   let uploadedFileText = '';
+  let isRecruiterLoggedIn = false;
 
   // Toast notification helper for validation and error states
   const appToast = document.getElementById('app-toast');
@@ -57,11 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseSettings = document.getElementById('btn-close-settings');
   const btnCancelSettings = document.getElementById('btn-cancel-settings');
   const btnSaveSettings = document.getElementById('btn-save-settings');
-  const engineSwitch = document.getElementById('settings-engine-switch');
   const autoadvanceSwitch = document.getElementById('settings-autoadvance-switch');
-  const geminiKeyGroup = document.getElementById('gemini-key-group');
-  const settingsGeminiKey = document.getElementById('settings-gemini-key');
-  const btnToggleKeyVis = document.getElementById('btn-toggle-key-visibility');
   const voiceRateInput = document.getElementById('settings-voice-rate');
   const voiceRateVal = document.getElementById('settings-voice-rate-val');
   const voiceLangSelect = document.getElementById('settings-voice-lang');
@@ -88,24 +86,31 @@ document.addEventListener('DOMContentLoaded', () => {
   function switchView(target) {
     const isLanding = target === 'landing';
     const isCandidate = target === 'candidate';
-    const isRecruiter = target === 'recruiter';
+    const isRecruiterRequested = target === 'recruiter';
+    const showRecruiterLogin = isRecruiterRequested && !isRecruiterLoggedIn;
+    const showRecruiterDashboard = isRecruiterRequested && isRecruiterLoggedIn;
 
     navHome?.classList.toggle('active', isLanding);
     navCandidate?.classList.toggle('active', isCandidate);
-    navRecruiter?.classList.toggle('active', isRecruiter);
+    navRecruiter?.classList.toggle('active', isRecruiterRequested);
 
     viewLanding?.classList.toggle('active', isLanding);
     viewCandidate?.classList.toggle('active', isCandidate);
-    viewRecruiter?.classList.toggle('active', isRecruiter);
+    
+    const viewRecruiterLogin = document.getElementById('recruiter-login');
+    viewRecruiterLogin?.classList.toggle('active', showRecruiterLogin);
+    viewRecruiter?.classList.toggle('active', showRecruiterDashboard);
 
     if (isCandidate) {
       showCandidateStep('step-upload');
     }
 
-    if (isRecruiter) {
+    if (isRecruiterRequested) {
       interview.stopAndSaveRecording();
       avatar.shutdown();
-      dashboard.refresh();
+      if (showRecruiterDashboard) {
+        dashboard.refresh();
+      }
     }
   }
 
@@ -118,7 +123,45 @@ document.addEventListener('DOMContentLoaded', () => {
     btnViewResults.addEventListener('click', () => switchView('recruiter'));
   }
 
-  // Helper to change wizard steps in Candidate Portal
+  // Recruiter Login Handler
+  const btnRecruiterLogin = document.getElementById('btn-recruiter-login');
+  if (btnRecruiterLogin) {
+    btnRecruiterLogin.addEventListener('click', async () => {
+      const email = document.getElementById('login-username').value.trim();
+      const pass = document.getElementById('login-password').value;
+      try {
+        const resp = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          // Store token securely (localStorage for demo; in prod use HttpOnly cookie)
+          localStorage.setItem('authToken', data.token);
+          isRecruiterLoggedIn = true;
+          showAppMessage('Successfully logged in as Recruiter.', 'success');
+          switchView('recruiter');
+        } else {
+          showAppMessage(data.message || 'Login failed', 'error');
+        }
+      } catch (e) {
+        showAppMessage('Network error during login', 'error');
+      }
+    });
+  }
+
+  // Logout handler (assuming a logout button exists in recruiter portal)
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem('authToken');
+      isRecruiterLoggedIn = false;
+      showAppMessage('Logged out', 'info');
+      switchView('landing');
+    });
+  }
+
   function showCandidateStep(stepId) {
     const steps = ['step-upload', 'step-processing', 'step-interview', 'step-completion'];
     steps.forEach(id => {
@@ -134,15 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettingsIntoModal() {
     const settings = StorageService.getSettings();
     
-    // Set Gemini mode
-    if (settings.geminiMode) {
-      engineSwitch.classList.add('checked');
-      geminiKeyGroup.style.display = 'block';
-    } else {
-      engineSwitch.classList.remove('checked');
-      geminiKeyGroup.style.display = 'none';
-    }
-
     // Set Auto-advance mode
     if (settings.autoAdvance) {
       autoadvanceSwitch.classList.add('checked');
@@ -150,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
       autoadvanceSwitch.classList.remove('checked');
     }
 
-    settingsGeminiKey.value = settings.geminiKey || '';
     voiceRateInput.value = settings.voiceRate || 1.0;
     voiceRateVal.innerText = voiceRateInput.value;
     voiceLangSelect.value = settings.voiceLanguage || 'en-US';
@@ -176,12 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === settingsOverlay) hideSettings();
   });
 
-  // Toggle API engine selector switch
-  engineSwitch.addEventListener('click', () => {
-    const isChecked = engineSwitch.classList.toggle('checked');
-    geminiKeyGroup.style.display = isChecked ? 'block' : 'none';
-  });
-
   // Toggle auto-advance switch
   autoadvanceSwitch.addEventListener('click', () => {
     autoadvanceSwitch.classList.toggle('checked');
@@ -192,19 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
     voiceRateVal.innerText = voiceRateInput.value;
   });
 
-  // API key eye toggle
-  btnToggleKeyVis.addEventListener('click', () => {
-    const type = settingsGeminiKey.getAttribute('type') === 'password' ? 'text' : 'password';
-    settingsGeminiKey.setAttribute('type', type);
-    btnToggleKeyVis.querySelector('i').classList.toggle('fa-eye');
-    btnToggleKeyVis.querySelector('i').classList.toggle('fa-eye-slash');
-  });
-
   // Save Settings click
   btnSaveSettings.addEventListener('click', () => {
     const settings = {
-      geminiMode: engineSwitch.classList.contains('checked'),
-      geminiKey: settingsGeminiKey.value.trim(),
       voiceLanguage: voiceLangSelect.value,
       voiceRate: parseFloat(voiceRateInput.value),
       autoAdvance: autoadvanceSwitch.classList.contains('checked')
@@ -273,17 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function isAcceptedResumeFile(file) {
-    const acceptedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain'
-    ];
     const lowerName = file.name.toLowerCase();
-    return acceptedTypes.includes(file.type) || lowerName.endsWith('.pdf') || lowerName.endsWith('.doc') || lowerName.endsWith('.docx') || lowerName.endsWith('.txt');
+    return lowerName.endsWith('.pdf') || lowerName.endsWith('.docx') || lowerName.endsWith('.txt');
   }
 
-  function handleFileSelected(file) {
+  async function handleFileSelected(file) {
     if (!file) {
       showAppMessage('No resume file was selected. Please choose a valid resume to continue.', 'error');
       return;
@@ -291,7 +302,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isAcceptedResumeFile(file)) {
       clearFileSelection();
-      showAppMessage('Unsupported file type. Please upload a PDF, DOC, DOCX, or TXT resume.', 'error');
+      showAppMessage('Unsupported file type. Please upload a PDF, DOCX, or TXT resume.', 'error');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      clearFileSelection();
+      showAppMessage('Resume files must be smaller than 8 MB.', 'error');
       return;
     }
 
@@ -312,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (file.name.toLowerCase().endsWith('.pdf')) {
       icon.className = 'fa-solid fa-file-pdf file-pill-icon';
       icon.style.color = 'var(--color-error)';
-    } else if (file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc')) {
+    } else if (file.name.toLowerCase().endsWith('.docx')) {
       icon.className = 'fa-solid fa-file-word file-pill-icon';
       icon.style.color = '#3b82f6';
     } else {
@@ -324,22 +341,26 @@ document.addEventListener('DOMContentLoaded', () => {
     dropZone.style.display = 'none';
     fileContainer.classList.add('active');
 
-    // Parse Text content if txt, else build simulated text placeholder
-    if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+    try {
+      if (file.name.toLowerCase().endsWith('.txt')) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        uploadedFileText = e.target.result;
-        validateStartForm();
-      };
-      reader.onerror = () => {
-        uploadedFileText = '';
-        validateStartForm();
-        showAppMessage('The selected resume could not be read. Please choose a different file.', 'error');
-      };
-      reader.readAsText(file);
-    } else {
-      uploadedFileText = `Candidate: ${inputName.value.trim() || 'Applicant'}\nPosition: ${selectRole.value}\nResume uploaded: ${file.name}\nExperience summary: professional background reviewed and considered for role alignment.`;
+        uploadedFileText = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('The selected resume could not be read.'));
+          reader.readAsText(file);
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('resume', file);
+        const response = await fetch('/api/resume/extract', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Could not read the selected resume.');
+        uploadedFileText = data.text;
+      }
       validateStartForm();
+    } catch (error) {
+      clearFileSelection();
+      showAppMessage(error.message, 'error', 6000);
     }
   }
 
@@ -359,11 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!uploadedFileName || !uploadedFileText) {
       showAppMessage('Please upload a valid resume before starting the interview.', 'error');
       return;
-    }
-
-    // If PDF/DOCX was uploaded, compile dynamic simulated text based on their targeted position
-    if (!uploadedFileText) {
-      uploadedFileText = `${name}\nEmail: ${email}\nPosition Targeted: ${role}\nExperience: 5 years of professional experience in development and system engineering environments.\nSkills: Highly proficient in core standards, visual layouts, and collaboration tools.\nEducation: BS in Computer Applications.`;
     }
 
     // Switch view to Step 2: Processing screen
@@ -386,22 +402,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    // Step-by-step scanner visual log timeline
-    await runLog("Verifying integrity headers...", 30, 800);
-    await runLog("Extracting raw resume text...", 55, 600);
-    await runLog("Scanning experience blocks & credential tokens...", 70, 700);
-    
-    // Initialize interview variables and questions (Simulated or Gemini)
-    await interview.initializeSession(name, email, role, uploadedFileName, uploadedFileText);
-    
-    await runLog("Compiling customized behavioral screening tasks...", 90, 800);
-    await runLog("Initiating AI holographic avatar interface...", 100, 500);
-
-    setTimeout(() => {
-      // Transition to Step 3: Interview Room
+    try {
+      await runLog('Analyzing your resume with AI...', 35, 0);
+      await interview.initializeSession(name, email, role, uploadedFileName, uploadedFileText);
+      fill.style.width = '100%';
       showCandidateStep('step-interview');
-      interview.beginInterview();
-    }, 400);
+      await interview.beginInterview();
+    } catch (error) {
+      console.error('Could not start AI screening:', error);
+      showAppMessage(error.message || 'Could not start the AI screening. Please try again.', 'error', 6000);
+      showCandidateStep('step-upload');
+      validateStartForm();
+    }
   });
 
   // Submit Answer timeline

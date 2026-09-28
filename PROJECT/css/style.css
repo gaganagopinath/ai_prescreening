@@ -1090,7 +1090,7 @@ button, input, select, textarea {
 }
 
 .chart-card {
-  height: 320px;
+  height: 330px;
   display: flex;
   flex-direction: column;
   padding: 1.25rem 1.25rem 1rem;
@@ -1098,14 +1098,31 @@ button, input, select, textarea {
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
+.chart-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
 .chart-title {
-  font-size: 1rem;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
   color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
+  margin-bottom: 0;
+}
+
+.chart-header-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
 .chart-container-inner {
@@ -1114,10 +1131,80 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem 0.1rem 0.1rem;
+  padding: 0.5rem 0.25rem 0.25rem;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(15, 19, 31, 0.25), rgba(15, 19, 31, 0.05));
+  background: linear-gradient(180deg, rgba(15, 19, 31, 0.4), rgba(15, 19, 31, 0.1));
   border: 1px solid rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.role-stats-container {
+  overflow-y: auto;
+  padding: 0.75rem 0.85rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.role-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.role-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.role-stat-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateX(2px);
+}
+
+.role-stat-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.role-stat-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.role-stat-badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+}
+
+.role-stat-track {
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.role-stat-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chart-canvas-mock {

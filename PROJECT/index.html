@@ -130,7 +130,7 @@
             <div class="flow-step">
               <span>01</span>
               <h4>Upload Resume</h4>
-              <p>Share a PDF, DOC, DOCX, or text resume from the candidate onboarding flow.</p>
+              <p>Share a PDF, DOCX, or text resume from the candidate onboarding flow.</p>
             </div>
             <div class="flow-step">
               <span>02</span>
@@ -207,7 +207,7 @@
             <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
             <div class="upload-text">Drag & drop your resume file here</div>
             <div class="upload-subtext">or click to browse from files</div>
-            <input type="file" id="resume-file-input" class="file-input-hidden" accept=".pdf,.docx,.txt,.doc">
+            <input type="file" id="resume-file-input" class="file-input-hidden" accept=".pdf,.docx,.txt">
           </div>
 
           <!-- Uploaded Pill -->
@@ -420,6 +420,36 @@
     </section>
 
     <!-- ========================================== -->
+    <!--          RECRUITER LOGIN SECTION           -->
+    <!-- ========================================== -->
+    <section id="recruiter-login" class="view-section">
+      <div class="landing-content" style="max-width: 480px; margin: 4rem auto;">
+        <div class="glass-card" style="padding: 2.5rem; text-align: center;">
+          <div class="header-logo" style="justify-content: center; margin-bottom: 1.5rem;">
+            <div class="logo-icon">P</div>
+            <div class="logo-text">PreScreen AI</div>
+          </div>
+          <h2 style="margin-bottom: 0.5rem; color: var(--color-text-primary);">Recruiter Access</h2>
+          <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 2rem;">Please log in to view candidate results and dashboard analytics.</p>
+          
+          <div style="text-align: left; margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--color-text-secondary);">Email or Username</label>
+            <input type="text" id="login-username" class="form-input" placeholder="admin@prescreen.ai" value="admin@prescreen.ai">
+          </div>
+          
+          <div style="text-align: left; margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--color-text-secondary);">Passcode</label>
+            <input type="password" id="login-password" class="form-input" placeholder="Enter passcode (e.g. admin)" value="admin">
+          </div>
+          
+          <button id="btn-recruiter-login" class="btn-primary" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-lock-open"></i> Login to Dashboard
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
     <!--          RECRUITER PORTAL SECTION          -->
     <!-- ========================================== -->
     <section id="recruiter-portal" class="view-section">
@@ -463,26 +493,34 @@
         </div>
       </div>
 
-      <!-- Analytics Row (Charts) -->
+      <!-- Analytics Row (Statistics & Visual Insights) -->
       <div class="analytics-row">
-        <!-- Score Distribution Bar Chart -->
+        <!-- Performance Score Distribution Chart -->
         <div class="glass-card chart-card">
-          <div class="chart-title">
-            <i class="fa-solid fa-chart-column" style="color: var(--accent-indigo);"></i> Performance Score Distribution
+          <div class="chart-header-row">
+            <div class="chart-title">
+              <i class="fa-solid fa-chart-column" style="color: var(--accent-indigo);"></i> Performance Score Distribution
+            </div>
+            <div id="score-chart-legend" class="chart-header-badge">Evaluating Candidates</div>
           </div>
-          <div class="chart-container-inner">
+          <div class="chart-container-inner" id="score-chart-container">
             <svg id="score-chart-svg" class="chart-canvas-mock"></svg>
             <div id="chart-tooltip" class="chart-tooltip"></div>
           </div>
         </div>
         
-        <!-- Job Role Distribution Donut Chart -->
+        <!-- Job Role Distribution Breakdown -->
         <div class="glass-card chart-card">
-          <div class="chart-title">
-            <i class="fa-solid fa-chart-pie" style="color: var(--accent-cyan);"></i> Applications by Role
+          <div class="chart-header-row">
+            <div class="chart-title">
+              <i class="fa-solid fa-layer-group" style="color: var(--accent-cyan);"></i> Applications by Role
+            </div>
+            <div id="role-chart-total-badge" class="chart-header-badge">Role Statistics</div>
           </div>
-          <div class="chart-container-inner">
-            <svg id="role-chart-svg" class="chart-canvas-mock"></svg>
+          <div class="chart-container-inner role-stats-container" id="role-stats-container">
+            <div id="role-breakdown-list" class="role-breakdown-list">
+              <!-- Dynamically populated role statistics -->
+            </div>
           </div>
         </div>
       </div>
@@ -675,40 +713,13 @@
     <div class="api-config-modal">
       <div class="modal-header">
         <h3 style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
-          <i class="fa-solid fa-gears" style="color: var(--accent-indigo);"></i> Interview AI Engine Settings
+          <i class="fa-solid fa-gears" style="color: var(--accent-indigo);"></i> Interview Settings
         </h3>
         <button id="btn-close-settings" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
       <div class="modal-body">
         
-        <!-- Engine Selector Switch -->
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <div>
-              <div class="form-label" style="margin-bottom: 0px; font-weight: bold; color: var(--color-text-primary);">Gemini API Engine</div>
-              <div style="font-size: 0.75rem; color: var(--color-text-muted);">Optional: use a real Google Gemini API key for live AI generation. Leave it off to keep using the built-in mock AI flow.</div>
-            </div>
-            <div id="settings-engine-switch" class="switch-container">
-              <div class="switch-control"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Gemini API Key input -->
-        <div id="gemini-key-group" class="form-group" style="display: none;">
-          <label class="form-label" for="settings-gemini-key">Google Gemini API Key (Optional)</label>
-          <div style="position: relative;">
-            <input type="password" id="settings-gemini-key" class="form-input" style="padding-right: 2.5rem;" placeholder="AIzaSy...">
-            <button id="btn-toggle-key-visibility" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--color-text-secondary); cursor: pointer;" title="Toggle Visibility">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-          <div style="font-size: 0.7rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-            This is only used to call the real Gemini API when you enable it. If you leave it blank, the app continues with the local mock AI logic for demo purposes.
-          </div>
-        </div>
-
         <div class="form-group">
           <label class="form-label" for="settings-voice-rate">Avatar Speaking Speed: <span id="settings-voice-rate-val">1.0</span>x</label>
           <input type="range" id="settings-voice-rate" class="form-input" style="padding: 0; cursor: pointer;" min="0.5" max="1.8" step="0.1" value="1.0">
@@ -747,7 +758,6 @@
 
   <!-- App Core Orchestration Loader -->
   <script src="js/storage.js"></script>
-  <script src="js/services/mockAiService.js"></script>
   <script src="js/avatar.js"></script>
   <script src="js/interview.js"></script>
   <script src="js/dashboard.js"></script>

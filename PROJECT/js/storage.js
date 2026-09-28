@@ -117,14 +117,17 @@ const StorageService = {
   // Get settings
   getSettings() {
     const defaults = {
-      geminiMode: false,
-      geminiKey: '',
       voiceLanguage: 'en-US',
       voiceRate: 1.0,
       autoAdvance: true
     };
     const saved = localStorage.getItem('pre_screening_settings');
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    if (!saved) return defaults;
+    const settings = { ...defaults, ...JSON.parse(saved) };
+    delete settings.geminiMode;
+    delete settings.geminiKey;
+    localStorage.setItem('pre_screening_settings', JSON.stringify(settings));
+    return settings;
   },
 
   // Save settings

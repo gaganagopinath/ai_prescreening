@@ -247,71 +247,104 @@ class RecruiterDashboard {
     this.renderRoleChart();
   }
 
-  // Bar Chart: Score Distribution
+  // Score Distribution Histogram SVG Chart
   renderScoreChart() {
     const scoreSvg = document.getElementById('score-chart-svg');
+    const legendBadge = document.getElementById('score-chart-legend');
     if (!scoreSvg) return;
     scoreSvg.innerHTML = '';
 
-    // Create 5 score bins
+    // Create score bins
     const bins = [
-      { label: '< 6.0', count: 0, range: [0, 5.99] },
-      { label: '6.0-6.9', count: 0, range: [6.0, 6.99] },
-      { label: '7.0-7.9', count: 0, range: [7.0, 7.99] },
-      { label: '8.0-8.9', count: 0, range: [8.0, 8.99] },
-      { label: '9.0-10.0', count: 0, range: [9.0, 10.0] }
+      { label: '< 6.0', count: 0, range: [0, 5.99], colorStart: '#f97316', colorEnd: '#ef4444', tier: 'Needs Review' },
+      { label: '6.0-6.9', count: 0, range: [6.0, 6.99], colorStart: '#8b5cf6', colorEnd: '#6366f1', tier: 'Fair' },
+      { label: '7.0-7.9', count: 0, range: [7.0, 7.99], colorStart: '#6366f1', colorEnd: '#3b82f6', tier: 'Good' },
+      { label: '8.0-8.9', count: 0, range: [8.0, 8.99], colorStart: '#06b6d4', colorEnd: '#10b981', tier: 'High' },
+      { label: '9.0-10.0', count: 0, range: [9.0, 10.0], colorStart: '#10b981', colorEnd: '#059669', tier: 'Top Tier' }
     ];
 
-    // Populate bins
+    // Populate counts
     this.candidates.forEach(c => {
       const score = c.overallScore;
       const bin = bins.find(b => score >= b.range[0] && score <= b.range[1]);
       if (bin) bin.count++;
     });
 
-    const maxCount = Math.max(1, ...bins.map(b => b.count));
-    const svgWidth = Math.max(scoreSvg.clientWidth || scoreSvg.getBoundingClientRect().width || 500, 320);
-    const svgHeight = Math.max(scoreSvg.clientHeight || scoreSvg.getBoundingClientRect().height || 240, 180);
-    scoreSvg.setAttribute('width', '100%');
-    scoreSvg.setAttribute('height', '100%');
-    scoreSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+    const totalCandidates = this.candidates.length;
+    if (legendBadge) {
+      legendBadge.innerText = `${totalCandidates} candidate${totalCandidates !== 1 ? 's' : ''} evaluated`;
+    }
 
-    const paddingLeft = 42;
-    const paddingRight = 18;
-    const paddingTop = 18;
-    const paddingBottom = 42;
+    const svgWidth = 460;
+    const svgHeight = 220;
+    scoreSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+    scoreSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    // Add gradient defs
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    bins.forEach((bin, i) => {
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      grad.setAttribute('id', `bar-grad-${i}`);
+      grad.setAttribute('x1', '0%');
+      grad.setAttribute('y1', '0%');
+      grad.setAttribute('x2', '0%');
+      grad.setAttribute('y2', '100%');
+
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', '0%');
+      stop1.setAttribute('stop-color', bin.colorStart);
+
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '100%');
+      stop2.setAttribute('stop-color', bin.colorEnd);
+
+      grad.appendChild(stop1);
+      grad.appendChild(stop2);
+      defs.appendChild(grad);
+    });
+    scoreSvg.appendChild(defs);
+
+    const paddingLeft = 35;
+    const paddingRight = 15;
+    const paddingTop = 32;
+    const paddingBottom = 40;
 
     const graphWidth = svgWidth - paddingLeft - paddingRight;
     const graphHeight = svgHeight - paddingTop - paddingBottom;
     const colWidth = graphWidth / bins.length;
+    const maxCount = Math.max(3, ...bins.map(b => b.count));
 
-    const gridCount = 4;
-    for (let i = 0; i <= gridCount; i++) {
-      const y = paddingTop + (graphHeight * i) / gridCount;
-      const value = Math.round(maxCount - (maxCount * i) / gridCount);
+    // Y-Axis Gridlines
+    const gridSteps = 3;
+    for (let i = 0; i <= gridSteps; i++) {
+      const y = paddingTop + (graphHeight * i) / gridSteps;
+      const val = Math.round(maxCount - (maxCount * i) / gridSteps);
 
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', paddingLeft);
-      line.setAttribute('y1', y);
-      line.setAttribute('x2', svgWidth - paddingRight);
-      line.setAttribute('y2', y);
-      line.setAttribute('stroke', 'rgba(148, 163, 184, 0.16)');
-      line.setAttribute('stroke-width', '1');
-      scoreSvg.appendChild(line);
+      const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      gridLine.setAttribute('x1', paddingLeft);
+      gridLine.setAttribute('y1', y);
+      gridLine.setAttribute('x2', svgWidth - paddingRight);
+      gridLine.setAttribute('y2', y);
+      gridLine.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
+      gridLine.setAttribute('stroke-dasharray', i === gridSteps ? '0' : '4 4');
+      gridLine.setAttribute('stroke-width', '1');
+      scoreSvg.appendChild(gridLine);
 
-      const yText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      yText.setAttribute('x', paddingLeft - 10);
-      yText.setAttribute('y', y + 4);
-      yText.setAttribute('fill', 'var(--color-text-muted)');
-      yText.setAttribute('font-size', '10px');
-      yText.setAttribute('text-anchor', 'end');
-      yText.innerText = value;
-      scoreSvg.appendChild(yText);
+      const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      yLabel.setAttribute('x', paddingLeft - 8);
+      yLabel.setAttribute('y', y + 4);
+      yLabel.setAttribute('fill', 'rgba(148, 163, 184, 0.8)');
+      yLabel.setAttribute('font-size', '10px');
+      yLabel.setAttribute('font-weight', '500');
+      yLabel.setAttribute('text-anchor', 'end');
+      yLabel.innerText = val;
+      scoreSvg.appendChild(yLabel);
     }
 
+    // Bars
     bins.forEach((bin, idx) => {
-      const colX = paddingLeft + idx * colWidth + colWidth * 0.16;
-      const barW = colWidth * 0.68;
+      const barW = colWidth * 0.58;
+      const colX = paddingLeft + idx * colWidth + (colWidth - barW) / 2;
       const barH = (bin.count / maxCount) * graphHeight;
       const colY = paddingTop + graphHeight - barH;
 
@@ -319,19 +352,31 @@ class RecruiterDashboard {
       rect.setAttribute('x', colX);
       rect.setAttribute('y', colY);
       rect.setAttribute('width', barW);
-      rect.setAttribute('height', Math.max(4, barH));
+      rect.setAttribute('height', Math.max(6, barH));
       rect.setAttribute('rx', 6);
-      const glowColor = idx >= 3 ? '#10b981' : (idx >= 1 ? '#6366f1' : '#f97316');
-      rect.setAttribute('fill', glowColor);
-      rect.setAttribute('opacity', '0.9');
+      rect.setAttribute('fill', `url(#bar-grad-${idx})`);
+      rect.setAttribute('opacity', bin.count > 0 ? '0.95' : '0.3');
       rect.classList.add('svg-chart-bar');
 
+      // Count badge text above bar
+      const badgeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      badgeText.setAttribute('x', colX + barW / 2);
+      badgeText.setAttribute('y', colY - 8);
+      badgeText.setAttribute('fill', bin.count > 0 ? '#ffffff' : 'rgba(148, 163, 184, 0.4)');
+      badgeText.setAttribute('font-size', '12px');
+      badgeText.setAttribute('font-weight', 'bold');
+      badgeText.setAttribute('text-anchor', 'middle');
+      badgeText.innerText = bin.count;
+      scoreSvg.appendChild(badgeText);
+
+      // Tooltip listener
       const tooltip = document.getElementById('chart-tooltip');
       rect.addEventListener('mouseover', (e) => {
         rect.setAttribute('opacity', '1');
         if (tooltip) {
+          const pct = totalCandidates > 0 ? Math.round((bin.count / totalCandidates) * 100) : 0;
           tooltip.style.display = 'block';
-          tooltip.innerHTML = `<strong>${bin.label}</strong>: ${bin.count} candidate${bin.count !== 1 ? 's' : ''}`;
+          tooltip.innerHTML = `<strong>Score ${bin.label} (${bin.tier})</strong><br/>Candidate Count: ${bin.count} (${pct}%)`;
         }
       });
       rect.addEventListener('mousemove', (e) => {
@@ -342,134 +387,98 @@ class RecruiterDashboard {
         }
       });
       rect.addEventListener('mouseout', () => {
-        rect.setAttribute('opacity', '0.9');
+        rect.setAttribute('opacity', bin.count > 0 ? '0.95' : '0.3');
         if (tooltip) tooltip.style.display = 'none';
       });
 
       scoreSvg.appendChild(rect);
 
+      // X-Axis Labels
       const xText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      xText.setAttribute('x', paddingLeft + idx * colWidth + colWidth / 2);
-      xText.setAttribute('y', svgHeight - 15);
-      xText.setAttribute('fill', 'var(--color-text-muted)');
-      xText.setAttribute('font-size', '10px');
+      xText.setAttribute('x', colX + barW / 2);
+      xText.setAttribute('y', svgHeight - 12);
+      xText.setAttribute('fill', 'var(--color-text-secondary)');
+      xText.setAttribute('font-size', '11px');
+      xText.setAttribute('font-weight', '500');
       xText.setAttribute('text-anchor', 'middle');
       xText.innerText = bin.label;
       scoreSvg.appendChild(xText);
     });
   }
 
-  // Donut Chart: Applications by Role
+  // Job Role Breakdown & Statistics List
   renderRoleChart() {
-    const roleSvg = document.getElementById('role-chart-svg');
-    if (!roleSvg) return;
-    roleSvg.innerHTML = '';
+    const listContainer = document.getElementById('role-breakdown-list');
+    const totalBadge = document.getElementById('role-chart-total-badge');
+    if (!listContainer) return;
 
-    // Count candidates by role
+    listContainer.innerHTML = '';
+
+    // Standard list of roles + any custom candidate role
+    const defaultRoles = [
+      { name: 'Software Engineer', icon: 'fa-code', color: 'linear-gradient(90deg, #6366f1, #8b5cf6)' },
+      { name: 'UX Designer', icon: 'fa-pen-ruler', color: 'linear-gradient(90deg, #06b6d4, #3b82f6)' },
+      { name: 'Product Manager', icon: 'fa-chart-line', color: 'linear-gradient(90deg, #10b981, #059669)' },
+      { name: 'Data Analyst', icon: 'fa-database', color: 'linear-gradient(90deg, #f59e0b, #d97706)' }
+    ];
+
+    // Count candidate roles
     const counts = {};
+    let totalCandidates = this.candidates.length;
+
     this.candidates.forEach(c => {
-      counts[c.role] = (counts[c.role] || 0) + 1;
+      const roleName = c.role || 'Unspecified Role';
+      counts[roleName] = (counts[roleName] || 0) + 1;
     });
 
-    const roles = Object.keys(counts).map(role => ({
-      name: role,
-      count: counts[role]
-    }));
+    // Merge custom roles found in candidates
+    Object.keys(counts).forEach(roleName => {
+      if (!defaultRoles.some(r => r.name === roleName)) {
+        defaultRoles.push({
+          name: roleName,
+          icon: 'fa-user-tie',
+          color: 'linear-gradient(90deg, #ec4899, #8b5cf6)'
+        });
+      }
+    });
 
-    const total = roles.reduce((sum, r) => sum + r.count, 0);
-    const svgWidth = Math.max(roleSvg.clientWidth || roleSvg.getBoundingClientRect().width || 300, 260);
-    const svgHeight = Math.max(roleSvg.clientHeight || roleSvg.getBoundingClientRect().height || 240, 180);
-    roleSvg.setAttribute('width', '100%');
-    roleSvg.setAttribute('height', '100%');
-    roleSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+    const activeRolesCount = Object.keys(counts).length;
+    if (totalBadge) {
+      totalBadge.innerText = `${activeRolesCount} active role${activeRolesCount !== 1 ? 's' : ''}`;
+    }
 
-    if (total === 0) {
-      // Empty display
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', svgWidth / 2);
-      text.setAttribute('y', svgHeight / 2);
-      text.setAttribute('fill', 'var(--color-text-muted)');
-      text.setAttribute('text-anchor', 'middle');
-      text.innerText = 'No Data Available';
-      roleSvg.appendChild(text);
+    if (totalCandidates === 0) {
+      listContainer.innerHTML = `
+        <div style="text-align: center; color: var(--color-text-muted); padding: 2rem 0; font-size: 0.85rem;">
+          No candidate applications recorded yet.
+        </div>
+      `;
       return;
     }
 
-    const centerX = svgWidth * 0.34;
-    const centerY = svgHeight / 2;
-    const radius = 62;
-    const strokeWidth = 14;
-    const circumference = 2 * Math.PI * radius;
-    const colors = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b'];
+    // Render list items
+    defaultRoles.forEach(role => {
+      const candidateCount = counts[role.name] || 0;
+      const pct = totalCandidates > 0 ? Math.round((candidateCount / totalCandidates) * 100) : 0;
 
-    let currentOffset = 0;
-    roles.forEach((role, idx) => {
-      const percentage = role.count / total;
-      const strokeLength = percentage * circumference;
-      const strokeOffset = circumference - strokeLength + currentOffset;
+      const item = document.createElement('div');
+      item.className = 'role-stat-item';
+      item.innerHTML = `
+        <div class="role-stat-info">
+          <span class="role-stat-name">
+            <i class="fa-solid ${role.icon}" style="color: var(--accent-cyan); font-size: 0.8rem;"></i>
+            ${role.name}
+          </span>
+          <span class="role-stat-badge">
+            ${candidateCount} candidate${candidateCount !== 1 ? 's' : ''} (${pct}%)
+          </span>
+        </div>
+        <div class="role-stat-track">
+          <div class="role-stat-fill" style="width: ${pct}%; background: ${role.color}; opacity: ${candidateCount > 0 ? '1' : '0.25'};"></div>
+        </div>
+      `;
 
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', centerX);
-      circle.setAttribute('cy', centerY);
-      circle.setAttribute('r', radius);
-      circle.setAttribute('fill', 'transparent');
-      circle.setAttribute('stroke', colors[idx % colors.length]);
-      circle.setAttribute('stroke-width', strokeWidth);
-      circle.setAttribute('stroke-dasharray', `${strokeLength} ${circumference}`);
-      circle.setAttribute('stroke-dashoffset', `${-currentOffset}`);
-      circle.setAttribute('transform', `rotate(-90 ${centerX} ${centerY})`);
-      circle.setAttribute('style', 'transition: stroke-width 0.2s ease; cursor: pointer; opacity: 0.96;');
-      circle.addEventListener('mouseover', () => circle.setAttribute('stroke-width', strokeWidth + 4));
-      circle.addEventListener('mouseout', () => circle.setAttribute('stroke-width', strokeWidth));
-
-      roleSvg.appendChild(circle);
-      currentOffset -= strokeLength;
-    });
-
-    const centerValText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    centerValText.setAttribute('x', centerX);
-    centerValText.setAttribute('y', centerY + 4);
-    centerValText.setAttribute('fill', '#ffffff');
-    centerValText.setAttribute('font-size', '16px');
-    centerValText.setAttribute('font-weight', 'bold');
-    centerValText.setAttribute('text-anchor', 'middle');
-    centerValText.innerText = total;
-    roleSvg.appendChild(centerValText);
-
-    const centerLabelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    centerLabelText.setAttribute('x', centerX);
-    centerLabelText.setAttribute('y', centerY + 20);
-    centerLabelText.setAttribute('fill', 'var(--color-text-muted)');
-    centerLabelText.setAttribute('font-size', '9px');
-    centerLabelText.setAttribute('text-anchor', 'middle');
-    centerLabelText.innerText = 'TOTAL';
-    roleSvg.appendChild(centerLabelText);
-
-    const legendX = svgWidth * 0.7;
-    const legendStartY = centerY - (roles.length * 20) / 2;
-
-    roles.forEach((role, idx) => {
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', legendX);
-      rect.setAttribute('y', legendStartY + idx * 22);
-      rect.setAttribute('width', 10);
-      rect.setAttribute('height', 10);
-      rect.setAttribute('rx', 2);
-      rect.setAttribute('fill', colors[idx % colors.length]);
-      g.appendChild(rect);
-
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', legendX + 16);
-      text.setAttribute('y', legendStartY + idx * 22 + 9);
-      text.setAttribute('fill', 'var(--color-text-secondary)');
-      text.setAttribute('font-size', '11px');
-      let displayName = role.name;
-      if (displayName.length > 14) displayName = displayName.substring(0, 12) + '...';
-      const percentage = ((role.count / total) * 100).toFixed(0);
-      text.innerText = `${displayName} (${percentage}%)`;
-      g.appendChild(text);
-      roleSvg.appendChild(g);
+      listContainer.appendChild(item);
     });
   }
 
