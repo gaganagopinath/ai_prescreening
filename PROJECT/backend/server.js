@@ -9,8 +9,14 @@ const path = require('path');
 const Database = require('better-sqlite3');
 
 const app = express();
-app.use(cors({ origin: '*', credentials: true }));
+if (process.env.CORS_ORIGIN) {
+  app.use(cors({ origin: process.env.CORS_ORIGIN }));
+}
 app.use(express.json({ limit: '1mb' }));
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be configured in production.');
+}
 
 async function generateAIJson(prompt, temperature = 0.3) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -161,13 +167,17 @@ CREATE TABLE IF NOT EXISTS candidates (
 );
 `);
 
-// Create a default recruiter if none exists (admin@prescreen.ai / admin)
+// Create an initial recruiter only when explicitly configured by the operator.
 (async () => {
-  const existing = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@prescreen.ai');
-  if (!existing) {
-    const hash = await bcrypt.hash('admin', 10);
-    db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run('admin@prescreen.ai', hash);
-    console.log('Default recruiter created (admin@prescreen.ai / admin)');
+  const email = process.env.INITIAL_RECRUITER_EMAIL;
+  const password = process.env.INITIAL_RECRUITER_PASSWORD;
+  if (email && password) {
+    const existing = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!existing) {
+      const hash = await bcrypt.hash(password, 12);
+      db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)').run(email, hash);
+      console.log('Initial recruiter account created from deployment environment.');
+    }
   }
 })();
 

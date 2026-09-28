@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: prescreen-ai
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: prescreen-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/prescreen.db
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: INITIAL_RECRUITER_EMAIL
+        sync: false
+      - key: INITIAL_RECRUITER_PASSWORD
+        sync: false
